@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter, Stack_Sans_Notch } from "next/font/google";
 import "./globals.css";
+import Navbar from "@/containers/navbar";
+import MobileBottomNav from "@/components/custom/mobile-bottom-nav";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const stackSansNotch = Stack_Sans_Notch({
+  variable: "--font-stack-sans",
   subsets: ["latin"],
+  display: "swap", // 👈 This skips fallback matching and silences the warning
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter-sanserif",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -25,9 +29,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${stackSansNotch.variable} h-full font-inter antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Navbar />
+        <div>{children}</div>
+        {/* <MobileBottomNav /> */}
+      </body>
     </html>
   );
 }

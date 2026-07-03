@@ -1,0 +1,15 @@
+{
+  "material-icon-theme.folders.customClones": [
+    {
+      "name": "animation-teal",
+      "base": "animation",
+      "color": "#009688",
+      "folderNames": [
+        "gsap",
+        "gsap-wrappers",
+        "gsap-animations",
+        "my-gsap-code"
+      ]
+    }
+  ]
+}
