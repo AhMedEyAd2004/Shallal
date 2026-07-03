@@ -50,7 +50,7 @@ export default function ScrollRotatingCircularWrapper({
           start,
           end,
           scrub,
-          markers: true,
+          // markers: true,
         },
         defaults: { ease: "none" },
       });

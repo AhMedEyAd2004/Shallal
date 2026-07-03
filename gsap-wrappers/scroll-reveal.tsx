@@ -65,7 +65,7 @@ export default function ScrollRevealText({
             stagger: wordStagger,
             ease: "none",
             scrollTrigger: {
-              markers: true,
+              // markers: true,
               trigger: containerRef.current,
               start,
               end,
