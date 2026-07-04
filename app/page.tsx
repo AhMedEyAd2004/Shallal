@@ -1,9 +1,11 @@
 import CustomSpacing from "@/components/custom/customSpacingWrapper";
 import CompaniesServed from "@/containers/companies-served";
 import Hero from "@/containers/hero";
-import OurVision from "@/containers/ourVision";
+import AboutUs from "@/containers/about-us";
 import PlatformProvider from "@/containers/platform-provider";
 import Projects from "@/containers/projects";
+import Testimonial from "@/containers/Testimonial";
+import { StickyFooter } from "@/containers/footer";
 
 export default async function Home() {
   // await new Promise<void>((resolve) => {
@@ -20,13 +22,15 @@ export default async function Home() {
         <PlatformProvider />
       </CustomSpacing>
       <CustomSpacing>
-        <OurVision />
+        <AboutUs />
       </CustomSpacing>
       <CustomSpacing>
         <Projects />
       </CustomSpacing>
-
-      <div className="h-[2000px] w-screen bg-red-500"></div>
+      <CustomSpacing>
+        <Testimonial />
+      </CustomSpacing>
+      <StickyFooter />
     </main>
   );
 }

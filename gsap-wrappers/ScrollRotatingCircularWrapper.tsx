@@ -23,7 +23,7 @@ interface ScrollRotatingCircularWrapperProps extends React.ComponentProps<
 export default function ScrollRotatingCircularWrapper({
   rotation = 25,
   direction = "clockwise",
-  start = "-20% top",
+  start = "-50% top",
   end = "bottom top",
   scrub = true,
   className,
@@ -33,9 +33,7 @@ export default function ScrollRotatingCircularWrapper({
 
   useGSAP(
     () => {
-      const circle = wrapperRef.current?.querySelector<HTMLElement>(
-        ".circular-wrapper-circle",
-      );
+      const circle = wrapperRef.current?.firstElementChild as HTMLElement;
       const items = wrapperRef.current?.querySelectorAll<HTMLElement>(
         ".circular-wrapper-item",
       );
@@ -46,11 +44,11 @@ export default function ScrollRotatingCircularWrapper({
 
       const tl = gsap.timeline({
         scrollTrigger: {
-          trigger: circle,
+          trigger: wrapperRef.current,
           start,
           end,
           scrub,
-          // markers: true,
+          markers: true,
         },
         defaults: { ease: "none" },
       });
@@ -70,8 +68,11 @@ export default function ScrollRotatingCircularWrapper({
   );
 
   return (
-    <div ref={wrapperRef} className={className}>
-      <CircularWrapper {...circularProps} />
+    <div
+      ref={wrapperRef}
+      className={`absolute top-1/2 left-1/2 -translate-x-1/2 aspect-square ${className || ""}`}
+    >
+      <CircularWrapper {...circularProps} containerClassName="" />
     </div>
   );
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter, Stack_Sans_Notch } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/containers/navbar";
-import MobileBottomNav from "@/components/custom/mobile-bottom-nav";
+import { ThemeProvider } from "@/providers/theme-provide";
 
 const stackSansNotch = Stack_Sans_Notch({
   variable: "--font-stack-sans",
@@ -29,12 +29,19 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${inter.variable} ${stackSansNotch.variable} h-full font-inter antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Navbar />
-        <div>{children}</div>
-        {/* <MobileBottomNav /> */}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Navbar />
+          <div>{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );

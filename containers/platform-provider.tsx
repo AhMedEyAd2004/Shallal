@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
@@ -26,23 +26,40 @@ export default function PlatformProvider() {
   const logoRef = useRef<SVGSVGElement>(null);
   const svgWrapperRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const timelinesRef = useRef<gsap.core.Timeline[]>([]);
+
+  // Helper function to dynamically position the SVG wrapper relative to the logo node on mount/resize
+  const alignSvgWrapper = () => {
+    if (!logoRef.current || !svgWrapperRef.current) return;
+
+    // Zero out any previous transformations to measure base bounding rectangles cleanly
+    gsap.set(svgWrapperRef.current, { x: 0, y: 0 });
+
+    const delta = MotionPathPlugin.getRelativePosition(
+      svgWrapperRef.current,
+      logoRef.current,
+      [0.5, 0],
+      [0.5, 1.15],
+    );
+
+    gsap.set(svgWrapperRef.current, {
+      x: delta.x,
+      y: delta.y,
+    });
+  };
 
   useGSAP(
     () => {
       if (!logoRef.current || !svgWrapperRef.current) return;
 
-      const delta = MotionPathPlugin.getRelativePosition(
-        svgWrapperRef.current,
-        logoRef.current,
-        [0.5, 0],
-        [0.5, 1.15],
-      );
+      // 1. Initial vector positioning calculation
+      alignSvgWrapper();
 
-      gsap.set(svgWrapperRef.current, {
-        x: "+=" + delta.x,
-        y: "+=" + delta.y,
-      });
+      // Clear out any old timelines if this hook re-runs
+      timelinesRef.current.forEach((tl) => tl.kill());
+      timelinesRef.current = [];
 
+      // 2. Build the dot motion paths loop
       gsap.utils
         .toArray<SVGPathElement>("[id^='path-']")
         .forEach((pathEl, i) => {
@@ -66,7 +83,6 @@ export default function PlatformProvider() {
               ease: "power2.inOut",
             })
             .set(dot, { autoAlpha: 0 })
-
             .set(dot, { autoAlpha: 1 }, `+=${gsap.utils.random(0.5, 3)}`)
             .to(dot, {
               duration: gsap.utils.random(1.2, 2.5),
@@ -81,19 +97,38 @@ export default function PlatformProvider() {
               ease: "power2.inOut",
             })
             .set(dot, { autoAlpha: 0 });
+
+          // Keep track of active timelines so we can refresh them on window resizing
+          timelinesRef.current.push(tl);
         });
     },
     { scope: containerRef },
   );
+
+  // 3. EFFECT LAYER: Listens for resize events to force GSAP to refresh motion vector parameters
+  useEffect(() => {
+    const handleResize = () => {
+      // Re-align the parent wrapper element relative to the responsive logo position
+      alignSvgWrapper();
+
+      // Loop through and force recalculation of internal tracking lines
+      timelinesRef.current.forEach((tl) => {
+        // Capture current progress point state, invalidate internal coordinates cache, and restart loop smoothly
+        const progress = tl.progress();
+        tl.invalidate().progress(progress);
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
     <div
       ref={containerRef}
       className="size-full font-stack py-20 flex flex-col items-center"
     >
-      {/* 1. CLEAN CONTAINER: Sizing constraints removed from this layout line */}
       <div className="flex relative w-full justify-center items-center h-20 lg:h-32">
-        {/* Left Side Balanced Text Position */}
         <AnimatedTitle
           rotateFrom={-30}
           as="p"
@@ -105,7 +140,7 @@ export default function PlatformProvider() {
         <AnimatedTitle
           rotateFrom={30}
           as="p"
-          className="absolute top-1/2 -translate-y-1/2 left-[calc(50%+35px)] lg:left-[calc(50%+60px)] text-nowrap  px-3 py-1 shrink-0 text-sm md:text-xl lg:text-4xl"
+          className="absolute top-1/2 -translate-y-1/2 left-[calc(50%+35px)] lg:left-[calc(50%+60px)] text-nowrap px-3 py-1 shrink-0 text-sm md:text-xl lg:text-4xl"
         >
           +100 companies
         </AnimatedTitle>
@@ -186,6 +221,7 @@ export default function PlatformProvider() {
           );
         })}
       </div>
+
       <div className="border font-inter border-border rounded-xl -mt-12 lg:-mt-8 bg-card p-5 w-full max-w-180 z-10 mx-5 text-foreground">
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus error
         recusandae, maiores quaerat earum ea deleniti fugiat debitis veniam

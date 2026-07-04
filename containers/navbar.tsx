@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+import StaggeredMenu from "@/components/custom/staggeredMenu";
+import { GiftIcon, Link2Icon, MenuIcon } from "lucide-react";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { ThemeToggle } from "@/components/static/theme-toggle";
+import HoverText from "@/gsap-wrappers/Button-animation-onHover";
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const navLinks = [
   { label: "Products", href: "#" },
@@ -13,75 +23,131 @@ const navLinks = [
 ];
 
 export default function Header() {
-  const [isNearTop, setIsNearTop] = useState(true);
+  const headerRef = useRef<HTMLElement>(null);
+  const isSmallerThanLg = useMediaQuery("(max-width: 1024px)");
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsNearTop(window.scrollY <= 50);
-    };
+  useGSAP(
+    () => {
+      const header = headerRef.current;
+      if (!header) return;
 
-    handleScroll(); // set initial state on mount (e.g. page refreshed mid-scroll)
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+      // Initialize GSAP's highly-optimized responsive engine
+      const mm = gsap.matchMedia();
+
+      // Only run this animation config if screen is 768px or wider (Tailwind md)
+      mm.add("(min-width: 768px)", () => {
+        gsap.set(header, { left: "50%", xPercent: -50 });
+
+        const tl = gsap.timeline({ paused: true }).to(header, {
+          top: 20,
+          maxWidth: "64rem",
+          borderRadius: 9999,
+          duration: 0.3,
+          ease: "power2.out",
+        });
+
+        const st = ScrollTrigger.create({
+          start: 0,
+          end: 50,
+          onEnter: () => tl.play(),
+          onLeaveBack: () => tl.reverse(),
+        });
+
+        if (window.scrollY > 50) tl.progress(1);
+
+        // matchMedia automatically cleans up the ScrollTrigger and resets
+        // the inline styles on mobile if the screen size falls below 768px.
+        return () => {
+          st.kill();
+        };
+      });
+
+      // Master cleanup hook to kill the matchMedia listener on component unmount
+      return () => mm.revert();
+    },
+    { scope: headerRef },
+  );
 
   return (
     <header
-      className={`fixed z-100 flex items-center h-16 justify-between px-6 py-3 md:py-4 shadow bg-white transition-all duration-300 ease-out ${
-        isNearTop
-          ? "top-0 left-0 translate-x-0 w-full max-w-full rounded-none"
-          : "top-5 left-1/2 -translate-x-1/2 w-full max-w-5xl rounded-full mx-auto"
-      }`}
+      ref={headerRef}
+      className="fixed top-0 z-100 flex items-center h-16 justify-between px-6 py-3 md:py-4 shadow-sm border border-border bg-background/80 backdrop-blur-md w-full max-w-full rounded-none"
     >
-      <Link href="https://prebuiltui.com">
-        <Image
-          src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/dummyLogo/prebuiltuiDummyLogo.svg"
-          alt="Logo"
-          width={140}
-          height={32}
-        />
-      </Link>
+      <Link href="#">sdfs</Link>
 
-      <nav className="hidden md:flex items-center justify-center gap-8 text-gray-900 text-sm font-normal">
+      <nav className="hidden md:flex items-center justify-center gap-8 text-foreground text-sm font-normal">
         {navLinks.map((link) => (
           <Link
             key={link.label}
-            className="hover:text-indigo-600"
+            className="hover:text-primary transition-colors"
             href={link.href}
           >
-            {link.label}
+            <HoverText totalDuration={0.4}>{link.label}</HoverText>
           </Link>
         ))}
       </nav>
 
-      <div className="flex items-center space-x-4">
-        <Button
-          variant="outline"
-          size="icon"
-          className="size-8 border-slate-300 rounded-md"
-        >
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 15 15"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+      <div className="flex items-center gap-4">
+        <ThemeToggle />
+
+        {isSmallerThanLg && (
+          <StaggeredMenu
+            items={[
+              {
+                label: "About",
+                link: "#",
+                className:
+                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
+              },
+              {
+                label: "Contact",
+                link: "#",
+                className:
+                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
+              },
+              {
+                label: "Pricing",
+                link: "#",
+                className:
+                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
+              },
+              {
+                label: "Products",
+                link: "#",
+                className:
+                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
+              },
+            ]}
+            socialItems={[
+              {
+                label: "GitHub",
+                link: "https://github.com",
+                icon: <GiftIcon />,
+              },
+              {
+                label: "LinkedIn",
+                link: "https://linkedin.com",
+                icon: <Link2Icon />,
+              },
+            ]}
           >
-            <path
-              d="M7.5 10.39a2.889 2.889 0 1 0 0-5.779 2.889 2.889 0 0 0 0 5.778M7.5 1v.722m0 11.556V14M1 7.5h.722m11.556 0h.723m-1.904-4.596-.511.51m-8.172 8.171-.51.511m-.001-9.192.51.51m8.173 8.171.51.511"
-              stroke="#353535"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="size-8 border-border"
+            >
+              <MenuIcon />
+            </Button>
+          </StaggeredMenu>
+        )}
 
         <Button
           asChild
-          className="hidden md:flex bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full text-sm font-medium"
+          className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-full text-sm font-medium"
         >
-          <Link href="#">Sign up</Link>
+          <Link href="#">
+            <HoverText totalDuration={0.4}>Sign up</HoverText>
+          </Link>
         </Button>
       </div>
     </header>

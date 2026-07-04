@@ -20,12 +20,12 @@ const INNER_LOOP_ICONS = [
   <DartIcon key="inner-dart" className="text-4xl lg:text-6xl" />,
   <TypescriptIcon key="outer-ts" className="text-4xl lg:text-6xl" />,
   <PhpIcon key="inner-php" className="text-4xl lg:text-6xl" />,
-  <NextjsIcon key="outer-next" className="text-4xl lg:text-6xl" />,
+  <NextjsIcon key="outer-next" className="text-4xl fill-black lg:text-6xl" />,
   <ZodIcon key="inner-zod" className="text-4xl lg:text-6xl" />,
 ];
 
 const OUTER_LOOP_ICONS = [
-  <NextjsIcon key="outer-next" className="text-4xl  lg:text-6xl  " />,
+  <NextjsIcon key="outer-next" className="text-4xl fill-black lg:text-6xl  " />,
   <FlutterIcon key="inner-flutter" className="text-4xl lg:text-6xl" />,
   <TailwindcssIcon key="outer-tw" className="text-4xl  lg:text-6xl  " />,
   <ReactIcon key="outer-react" className="text-4xl  lg:text-6xl  " />,
@@ -36,48 +36,50 @@ const OUTER_LOOP_ICONS = [
     key="outer-gsap"
     className="text-4xl  lg:text-6xl  text-green-500"
   />,
-  <TypescriptIcon key="outer-ts" className="text-4xl  lg:text-6xl  " />,
+  <TypescriptIcon key="outer-ts" className="text-4xl  lg:text-6xl " />,
 ];
+
 export default function Hero() {
   return (
     <section className="h-dvh w-dvw overflow-hidden">
       <div className="size-full relative flex justify-center items-center">
         <ScrollRotatingCircularWrapper
-          spreadAngleMobile={80}
           items={OUTER_LOOP_ICONS}
           direction="counter-clockwise"
-          containerClassName="absolute! top-1/2 left-1/2 -translate-1/2 w-[140dvw] lg:w-[80vw] border-3 rotate-z-90 lg:rotate-z-0"
-          elementClassName="-rotate-z-90 lg:rotate-z-0 bg-gray-300 p-3 rounded-2xl"
+          className="-translate-y-1/2 lg:-translate-y-1/2 max-w-150 sm:max-w-full w-[140dvw] md:w-screen lg:w-[90vw] border-3 rotate-z-90 sm:rotate-z-0 rounded-full"
+          elementClassName="-rotate-z-90 sm:rotate-z-0! bg-gray-300 p-3 rounded-2xl"
           radiusPercent={50}
-          spreadAngle={60}
+          spreadAngle={{ base: 90, sm: 100, lg: 70 }}
         />
+
         <ScrollRotatingCircularWrapper
           direction="clockwise"
           items={INNER_LOOP_ICONS}
-          containerClassName="absolute! top-1/2 left-1/2 -translate-1/2 w-[60vw] border-3 hidden lg:block "
-          elementClassName=" bg-gray-300 p-3 rounded-2xl"
+          className="-translate-y-1/2 lg:-translate-y-1/2 md:w-[80vw] lg:w-[70vw] border-3  hidden md:block rounded-full"
+          elementClassName="rotate-z-0 bg-gray-300 p-3 rounded-2xl"
           radiusPercent={50}
-          spreadAngle={70}
+          spreadAngle={{ base: 90, sm: 100, lg: 100 }}
         />
-        <div className="flex flex-col items-center justify-center p-4 gap-4 sm:gap-5 lg:gap-6 text-center max-w-full sm:max-w-xl md:max-w-2xl lg:max-w-[856px] select-none mx-auto tracking-normal">
-          <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-[70px] font-stack font-black text-slate-950 leading-[1.15] lg:leading-[1.1] tracking-tight">
+
+        <div className="flex flex-col items-center justify-center p-4 gap-4 sm:gap-5 lg:gap-6 text-center max-w-105 sm:max-w-2xl md:max-w-2xl lg:max-w-[65vw] select-none mx-auto tracking-normal z-10">
+          <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-[70px] font-stack font-black text-slate-950 dark:text-slate-50 leading-[1.15] lg:leading-[1.1] tracking-tight transition-colors duration-200">
             We engineer high-growth digital products
           </h2>
 
-          <p className="font-inter text-sm sm:text-base md:text-lg lg:text-[20px] font-normal text-slate-700 leading-relaxed lg:leading-normal max-w-[90%] lg:max-w-[85%]">
+          <p className="font-inter text-sm sm:text-base md:text-lg lg:text-[20px] font-normal text-slate-700 dark:text-slate-300 leading-relaxed lg:leading-normal max-w-[90%] lg:max-w-[85%] transition-colors duration-200">
             From modern web platforms to native mobile apps, we write clean,
             scalable code that brings your product vision to life.
           </p>
 
-          <div className="mt-2 flex flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center px-2">
-            <Button className="w-full sm:w-auto whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
+          <div className="mt-2 flex md:w-auto max-w-80 flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center px-2">
+            <Button className="w-full sm:w-auto whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 dark:shadow-indigo-500/10 transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
               <p>Book a discovery call</p>
-              <CalendarClockIcon />
+              <CalendarClockIcon className="size-4 md:size-5" />
             </Button>
 
-            <Button className="w-full sm:w-auto whitespace-nowrap bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-sm transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
+            <Button className="w-full sm:w-auto whitespace-nowrap bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-850 dark:border-slate-800 dark:text-slate-200 font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-sm transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
               <p>Let&apos;s talk</p>
-              <ArrowRight />
+              <ArrowRight className="size-4 md:size-5" />
             </Button>
           </div>
         </div>
