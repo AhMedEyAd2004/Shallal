@@ -12,16 +12,15 @@ export default async function Home() {
   });
 
   return (
-    <main className="">
+    <main className="overflow-x-hidden">
       <Hero />
-      <CustomSpacing className="border-t">
+      <CustomSpacing className="border-y">
         <ServicedPlatforms />
       </CustomSpacing>
-      <CustomSpacing>
-        <AboutUs />
-      </CustomSpacing>
 
-      <CustomSpacing>
+      <AboutUs />
+
+      <CustomSpacing className="border-t">
         <Projects />
       </CustomSpacing>
       <CustomSpacing>

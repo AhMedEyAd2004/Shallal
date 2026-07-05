@@ -22,7 +22,36 @@ export default function ScrollPinnedSlides({
   useGSAP(
     () => {
       ScrollTrigger.config({ ignoreMobileResize: true });
-      ScrollTrigger.normalizeScroll(true);
+
+      let normalizer: ReturnType<typeof ScrollTrigger.normalizeScroll> | null =
+        null;
+
+      ScrollTrigger.create({
+        trigger: containerRef.current,
+        start: "top bottom",
+        end: "bottom top",
+        anticipatePin: 1,
+        onEnter: () => {
+          normalizer = ScrollTrigger.normalizeScroll({
+            allowNestedScroll: true,
+          });
+        },
+        onLeave: () => {
+          if (normalizer && typeof normalizer.kill === "function")
+            normalizer.kill();
+          normalizer = null;
+        },
+        onEnterBack: () => {
+          normalizer = ScrollTrigger.normalizeScroll({
+            allowNestedScroll: true,
+          });
+        },
+        onLeaveBack: () => {
+          if (normalizer && typeof normalizer.kill === "function")
+            normalizer.kill();
+          normalizer = null;
+        },
+      });
 
       const panels = gsap.utils.toArray<HTMLElement>(".pinned-panel");
       const lines = gsap.utils.toArray<HTMLElement>(".clip-line");
@@ -229,7 +258,7 @@ export default function ScrollPinnedSlides({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[100svh] overflow-hidden bg-background"
+      className="relative w-full h-screen overflow-hidden bg-background"
     >
       {Children.map(children, (slide, index) => (
         <div
