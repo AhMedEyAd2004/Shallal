@@ -1,12 +1,10 @@
 import CustomSpacing from "@/components/custom/customSpacingWrapper";
-import CompaniesServed from "@/components/static/companies-served";
-import Hero from "@/containers/hero";
 import AboutUs from "@/containers/about-us";
-import PlatformProvider from "@/gsap-wrappers/PlatformsServed";
-import Projects from "@/containers/projects";
-import Testimonial from "@/containers/Testimonial";
 import { StickyFooter } from "@/containers/footer";
-import ServiedPlatforms from "@/containers/servingPlatforms";
+import Hero from "@/containers/hero";
+import Projects from "@/containers/projects";
+import ServicedPlatforms from "@/containers/servingPlatforms";
+import Testimonial from "@/containers/Testimonial";
 
 export default async function Home() {
   await new Promise<void>((resolve) => {
@@ -17,7 +15,7 @@ export default async function Home() {
     <main className="">
       <Hero />
       <CustomSpacing className="border-t">
-        <ServiedPlatforms />
+        <ServicedPlatforms />
       </CustomSpacing>
       <CustomSpacing>
         <AboutUs />

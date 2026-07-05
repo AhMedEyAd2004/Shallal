@@ -8,7 +8,7 @@ const companies: CompanyItem[] = Array.from({ length: 10 }, () => ({
   countryImage: "/egypt.png",
 }));
 
-export default function ServiedPlatforms() {
+export default function ServicedPlatforms() {
   return (
     <PlatformsServed companies={companies} logoSrc="/logo.png">
       <AnimatedTitle

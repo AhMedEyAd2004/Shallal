@@ -16,10 +16,9 @@ import HoverText from "@/gsap-wrappers/Button-animation-onHover";
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const navLinks = [
-  { label: "Products", href: "#" },
-  { label: "Customer Stories", href: "#" },
-  { label: "Pricing", href: "#" },
-  { label: "Docs", href: "#" },
+  { label: "About us", href: "#" },
+  { label: "Projects", href: "#" },
+  { label: "Blogs", href: "#" },
 ];
 
 export default function Header() {
@@ -28,6 +27,7 @@ export default function Header() {
 
   useGSAP(
     () => {
+      ScrollTrigger.config({ ignoreMobileResize: true });
       const header = headerRef.current;
       if (!header) return;
 
@@ -81,7 +81,9 @@ export default function Header() {
           height={48}
           className="rounded-md overflow-hidden"
         />
-        <h1 className="font-stack italic font-bold tracking-wider">Shallal Programming</h1>
+        <h1 className="font-stack italic font-bold tracking-wider">
+          Shallal Programming
+        </h1>
       </Link>
 
       <nav className="hidden  lg:flex items-center justify-center gap-8 text-foreground text-sm font-normal">

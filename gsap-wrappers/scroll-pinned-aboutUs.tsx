@@ -47,7 +47,7 @@ export default function ScrollPinnedSlides({
           scrollTrigger: {
             trigger: containerRef.current,
             start: "top top",
-            end: `+=${calculatedDistance}`,
+            end: `+=${calculatedDistance}+500px`,
             pin: true,
             scrub: 1,
             anticipatePin: 1,

@@ -41,6 +41,7 @@ export default function ScrollRevealText({
 
   useGSAP(
     () => {
+      ScrollTrigger.config({ ignoreMobileResize: true });
       const target = containerRef.current?.querySelector(
         "[data-reveal-text]",
       ) as HTMLElement;
