@@ -46,7 +46,7 @@ export default function Projects() {
   const hasMore = visibleCount < projects.length;
 
   return (
-    <section className="w-full text-foreground px-6 py-20 md:py-32 flex flex-col items-center overflow-x-hidden">
+    <section id="projects" className="w-full text-foreground px-6 py-20 md:py-32 flex flex-col items-center overflow-x-hidden">
       <div className="w-full max-w-7xl space-y-8 md:space-y-12">
         <AnimatedTitle
           as="h2"

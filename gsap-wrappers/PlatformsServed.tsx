@@ -76,35 +76,51 @@ export default function PlatformsServed({
 
             const tl = gsap.timeline({ repeat: -1 });
 
-            tl.set(dot, { autoAlpha: 1 })
-              .to(dot, {
-                motionPath: {
-                  path: pathEl,
-                  align: pathEl,
-                  alignOrigin: [0.5, 0.5],
-                  autoRotate: true,
-                  start: 0,
-                  end: 1,
+            const duration1 = gsap.utils.random(1.2, 2.5);
+            const delay1 = gsap.utils.random(0.5, 3);
+            const duration2 = gsap.utils.random(1.2, 2.5);
+            const delay2 = gsap.utils.random(0.5, 3);
+
+            tl.set(dot, { autoAlpha: 1, scale: 0 })
+              .add("start1", `+=${delay1}`)
+              .to(dot, { scale: 1, duration: 0.2, ease: "power2.out" }, "start1")
+              .to(
+                dot,
+                {
+                  motionPath: {
+                    path: pathEl,
+                    align: pathEl,
+                    alignOrigin: [0.5, 0.5],
+                    autoRotate: true,
+                    start: 0,
+                    end: 1,
+                  },
+                  duration: duration1,
+                  ease: "power2.inOut",
                 },
-                duration: gsap.utils.random(1.2, 2.5),
-                delay: gsap.utils.random(0.5, 3),
-                ease: "power2.inOut",
-              })
-              .set(dot, { autoAlpha: 0 })
-              .set(dot, { autoAlpha: 1 }, `+=${gsap.utils.random(0.5, 3)}`)
-              .to(dot, {
-                duration: gsap.utils.random(1.2, 2.5),
-                motionPath: {
-                  path: pathEl,
-                  align: pathEl,
-                  alignOrigin: [0.5, 0.5],
-                  autoRotate: true,
-                  start: 1,
-                  end: 0,
+                "start1"
+              )
+              .to(dot, { scale: 0, duration: 0.2, ease: "power2.in" }, ">-0.2")
+              
+              .add("start2", `+=${delay2}`)
+              .to(dot, { scale: 1, duration: 0.2, ease: "power2.out" }, "start2")
+              .to(
+                dot,
+                {
+                  motionPath: {
+                    path: pathEl,
+                    align: pathEl,
+                    alignOrigin: [0.5, 0.5],
+                    autoRotate: true,
+                    start: 1,
+                    end: 0,
+                  },
+                  duration: duration2,
+                  ease: "power2.inOut",
                 },
-                ease: "power2.inOut",
-              })
-              .set(dot, { autoAlpha: 0 });
+                "start2"
+              )
+              .to(dot, { scale: 0, duration: 0.2, ease: "power2.in" }, ">-0.2");
 
             timelinesRef.current.push(tl);
           });
@@ -155,7 +171,7 @@ export default function PlatformsServed({
           viewBox="0 0 594 188"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
-          className="absolute inset-0 w-full h-full text-gray-300!"
+          className="absolute inset-0 w-full h-full text-gray-200 dark:text-slate-800"
           preserveAspectRatio="none"
         >
           <path

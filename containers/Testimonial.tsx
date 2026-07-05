@@ -69,7 +69,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
 export default function Testimonial() {
   return (
-    <section className="py-24 bg-background text-foreground">
+    <section id="blogs" className="py-24 bg-background text-foreground">
       <h3 className="text-center font-stack text-2xl sm:text-3xl md:text-4xl font-semibold">
         You&apos;re in good company
       </h3>

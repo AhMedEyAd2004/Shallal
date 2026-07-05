@@ -20,6 +20,7 @@ export default async function Home() {
       <CustomSpacing>
         <AboutUs />
       </CustomSpacing>
+
       <CustomSpacing>
         <Projects />
       </CustomSpacing>

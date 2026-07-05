@@ -22,6 +22,7 @@ export default function ScrollPinnedSlides({
   useGSAP(
     () => {
       ScrollTrigger.config({ ignoreMobileResize: true });
+      ScrollTrigger.normalizeScroll(true);
 
       const panels = gsap.utils.toArray<HTMLElement>(".pinned-panel");
       const lines = gsap.utils.toArray<HTMLElement>(".clip-line");
@@ -75,16 +76,17 @@ export default function ScrollPinnedSlides({
               { bottom: "0%", opacity: "100%", autoAlpha: 1 },
               {
                 bottom: "100%",
-                autoAlpha: 1,
                 ease: "none",
                 duration,
-                onComplete: () => gsap.set(line, { autoAlpha: 0 }),
-                onReverseComplete: () => gsap.set(line, { autoAlpha: 1 }),
               },
               pos,
             );
+            tl.set(line, { autoAlpha: 0 }, pos + duration);
           }
         });
+
+        // Add a reading cushion so the last slide is fully visible before unpinning
+        tl.to({}, { duration: 0.5 });
       });
 
       // ==========================================
@@ -124,10 +126,11 @@ export default function ScrollPinnedSlides({
           scrollTrigger: {
             trigger: containerRef.current,
             start: "top top",
-            // Pins long enough to handle both slide transitions, horizontal tracking, and a 50px pause cushion
             end: () => `+=${window.innerHeight * 5 + 50}`,
             pin: true,
             scrub: 1,
+            anticipatePin: 1,
+            fastScrollEnd: true,
             invalidateOnRefresh: true,
           },
         });
@@ -153,10 +156,10 @@ export default function ScrollPinnedSlides({
               bottom: "100%",
               ease: "none",
               duration: segmentDuration,
-              onComplete: () => gsap.set(lines[0], { autoAlpha: 0 }),
             },
             0,
           );
+          mobileTimeline.set(lines[0], { autoAlpha: 0 }, segmentDuration);
         }
 
         // 2. Clip Slide 2 Out
@@ -178,10 +181,10 @@ export default function ScrollPinnedSlides({
               bottom: "100%",
               ease: "none",
               duration: segmentDuration,
-              onComplete: () => gsap.set(lines[1], { autoAlpha: 0 }),
             },
             segmentDuration,
           );
+          mobileTimeline.set(lines[1], { autoAlpha: 0 }, segmentDuration * 2);
         }
 
         // 3. Horizontal Card translation
@@ -213,6 +216,9 @@ export default function ScrollPinnedSlides({
             segmentDuration * 2 + (index / horizontalCards.length) * 2.2,
           );
         });
+
+        // 5. Add an empty tween to create a generous reading cushion for the final card
+        mobileTimeline.to({}, { duration: 0.8 });
       });
 
       return () => mm.revert();
@@ -223,7 +229,7 @@ export default function ScrollPinnedSlides({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen overflow-hidden bg-background"
+      className="relative w-full h-[100svh] overflow-hidden bg-background"
     >
       {Children.map(children, (slide, index) => (
         <div

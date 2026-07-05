@@ -16,9 +16,9 @@ import HoverText from "@/gsap-wrappers/Button-animation-onHover";
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const navLinks = [
-  { label: "About us", href: "#" },
-  { label: "Projects", href: "#" },
-  { label: "Blogs", href: "#" },
+  { label: "About us", href: "#about" },
+  { label: "Projects", href: "#projects" },
+  { label: "Blogs", href: "#blogs" },
 ];
 
 export default function Header() {
@@ -88,13 +88,13 @@ export default function Header() {
 
       <nav className="hidden  lg:flex items-center justify-center gap-8 text-foreground text-sm font-normal">
         {navLinks.map((link) => (
-          <Link
+          <a
             key={link.label}
             className="hover:text-primary transition-colors"
             href={link.href}
           >
             <HoverText totalDuration={0.4}>{link.label}</HoverText>
-          </Link>
+          </a>
         ))}
       </nav>
 
@@ -102,7 +102,7 @@ export default function Header() {
         <ThemeToggle />
 
         {isSmallerThanLg && (
-          <StaggeredMenu className="bg-red-500"
+          <StaggeredMenu
             items={[
               {
                 label: "About",

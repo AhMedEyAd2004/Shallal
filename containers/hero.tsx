@@ -42,7 +42,7 @@ const OUTER_LOOP_ICONS = [
 
 export default function Hero() {
   return (
-    <section className="h-dvh w-dvw overflow-hidden">
+    <section className="h-svh w-dvw overflow-hidden">
       <div className="size-full relative flex justify-center items-center">
         <ScrollRotatingCircularWrapper
           items={OUTER_LOOP_ICONS}

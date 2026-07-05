@@ -1,15 +1,15 @@
-"use client";
-
 import AnimatedTitle from "@/gsap-wrappers/animated-title";
 import ScrollPinnedSlides from "@/gsap-wrappers/scroll-pinned-aboutUs";
-import ScrollRevealText from "@/gsap-wrappers/scroll-reveal";
 import { Globe, Smartphone, Settings } from "lucide-react";
 
 export default function AboutUs() {
   return (
     <ScrollPinnedSlides>
       {/* --- SLIDE 1: ABOUT US --- */}
-      <section className="relative w-full h-full px-6 py-20 md:py-32 flex flex-col items-center justify-center bg-background overflow-hidden">
+      <section
+        id="about"
+        className="relative w-full h-full px-6 py-20 md:py-32 flex flex-col items-center justify-center bg-background overflow-hidden"
+      >
         {/* orbs */}
         <div className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-foreground/5 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-foreground/5 blur-3xl" />
@@ -23,20 +23,12 @@ export default function AboutUs() {
             About Us
           </AnimatedTitle>
 
-          <ScrollRevealText
-            as="p"
-            start="top 70%"
-            end="bottom 60%"
-            dimAutoAlpha={0.4}
-            highlightColor="#2563eb"
-            scrub={1}
-            className="text-base sm:text-lg md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-relaxed sm:leading-snug md:leading-tight tracking-tight text-pretty max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl text-center text-foreground/70 mx-auto"
-          >
+          <p className="text-base sm:text-lg md:text-2xl lg:text-3xl xl:text-4xl font-extrabold leading-relaxed sm:leading-snug md:leading-tight tracking-tight text-pretty max-w-full sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl text-center text-foreground/70 mx-auto">
             We are a team of builders obsessed with craft. From web platforms to
             mobile apps and full-scale management systems, we design and
             engineer digital products that feel fast, look sharp, and hold up
             under real-world pressure.
-          </ScrollRevealText>
+          </p>
         </div>
       </section>
 
