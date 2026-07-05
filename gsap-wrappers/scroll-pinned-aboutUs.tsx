@@ -22,35 +22,35 @@ export default function ScrollPinnedSlides({
   useGSAP(
     () => {
       ScrollTrigger.config({ ignoreMobileResize: true });
-
-      let normalizer: ReturnType<typeof ScrollTrigger.normalizeScroll> | null =
-        null;
+      ScrollTrigger.normalizeScroll({ allowNestedScroll: true, });
+      // let normalizer: ReturnType<typeof ScrollTrigger.normalizeScroll> | null =
+      //   null;
 
       ScrollTrigger.create({
         trigger: containerRef.current,
         start: "top bottom",
         end: "bottom top",
         anticipatePin: 1,
-        onEnter: () => {
-          normalizer = ScrollTrigger.normalizeScroll({
-            allowNestedScroll: true,
-          });
-        },
-        onLeave: () => {
-          if (normalizer && typeof normalizer.kill === "function")
-            normalizer.kill();
-          normalizer = null;
-        },
-        onEnterBack: () => {
-          normalizer = ScrollTrigger.normalizeScroll({
-            allowNestedScroll: true,
-          });
-        },
-        onLeaveBack: () => {
-          if (normalizer && typeof normalizer.kill === "function")
-            normalizer.kill();
-          normalizer = null;
-        },
+        // onEnter: () => {
+        //   normalizer = ScrollTrigger.normalizeScroll({
+        //     allowNestedScroll: true,
+        //   });
+        // },
+        // onLeave: () => {
+        //   if (normalizer && typeof normalizer.kill === "function")
+        //     normalizer.kill();
+        //   normalizer = null;
+        // },
+        // onEnterBack: () => {
+        //   normalizer = ScrollTrigger.normalizeScroll({
+        //     allowNestedScroll: true,
+        //   });
+        // },
+        // onLeaveBack: () => {
+        //   if (normalizer && typeof normalizer.kill === "function")
+        //     normalizer.kill();
+        //   normalizer = null;
+        // },
       });
 
       const panels = gsap.utils.toArray<HTMLElement>(".pinned-panel");

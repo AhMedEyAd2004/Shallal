@@ -12,7 +12,9 @@ import {
 } from "react";
 import { useSwipeable } from "react-swipeable";
 import { Button } from "@/components/ui/button";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 // Timing for the two-phase "arc" motion. Phase 1 is the lift/throw-out,
 // phase 2 is the settle into the final resting slot.
 const PHASE_1 = 0.32;
@@ -51,6 +53,9 @@ export const CardStackCarousel = ({
   const cardEls = useRef<Map<string, HTMLDivElement>>(new Map());
   const isAnimating = useRef(false);
   const baseZ = useRef(items.length);
+  const normalizeRef = useRef<ReturnType<
+    typeof ScrollTrigger.normalizeScroll
+  > | null>(null);
 
   const { contextSafe } = useGSAP(() => {
     // Snap every card into its starting stack position on mount.
@@ -58,6 +63,12 @@ export const CardStackCarousel = ({
       const el = cardEls.current.get(id);
       if (el) gsap.set(el, getStackStyle(index, baseZ.current));
     });
+    normalizeRef.current = ScrollTrigger.normalizeScroll({
+      allowNestedScroll: true,
+    });
+    return () => {
+      normalizeRef.current?.kill?.();
+    };
   }, []);
 
   // contextSafe only ever receives plain values as arguments — it never
@@ -208,6 +219,8 @@ export const CardStackCarousel = ({
   // Swipe right => next, swipe left => prev. Nothing else — no live
   // drag-follow, no snap-back, just the same goTo the buttons use.
   const swipeHandlers = useSwipeable({
+    onTouchStartOrOnMouseDown: () => normalizeRef.current?.disable(),
+    onTouchEndOrOnMouseUp: () => normalizeRef.current?.enable(),
     onSwipedRight: () => goTo("next"),
     onSwipedLeft: () => goTo("prev"),
     trackMouse: true,

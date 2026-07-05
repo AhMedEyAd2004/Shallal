@@ -29,9 +29,9 @@ export function StickyFooter() {
             aria-hidden
             className="absolute inset-0 isolate z-0 opacity-50 contain-strict dark:opacity-60"
           >
-            <div className="absolute top-0 left-0 h-320 w-140 -translate-y-87.5 -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,--theme(--color-foreground/.06)_0,hsla(0,0%,55%,.02)_50%,--theme(--color-foreground/.01)_80%)]" />
-            <div className="absolute top-0 left-0 h-320 w-60 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] [translate:5%_-50%]" />
-            <div className="absolute top-0 left-0 h-320 w-60 -translate-y-87.5 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)]" />
+            <div className="absolute top-0 left-0 h-56 w-32 sm:h-320 sm:w-140 -translate-y-[27%] -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,--theme(--color-foreground/.06)_0,hsla(0,0%,55%,.02)_50%,--theme(--color-foreground/.01)_80%)]" />
+            <div className="absolute top-0 left-0 h-56 w-24 sm:h-320 sm:w-60 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] [translate:5%_-50%]" />
+            <div className="absolute top-0 left-0 h-56 w-24 sm:h-320 sm:w-60 -translate-y-[27%] -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)]" />
           </div>
           <div className="relative mx-auto flex size-full max-w-6xl flex-col justify-between gap-5">
             <div className="grid grid-cols-1 gap-8 px-4 pt-12 md:grid-cols-2 lg:grid-cols-4">
@@ -41,7 +41,6 @@ export function StickyFooter() {
                   alt="Shallal Logo"
                   width={120}
                   height={120}
-                  // className="size-10"
                 />
                 <p className="mt-8 text-muted-foreground text-sm md:mt-0">
                   Software development company that specializes in building
