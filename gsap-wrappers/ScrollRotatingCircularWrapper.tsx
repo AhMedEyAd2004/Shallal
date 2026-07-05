@@ -44,13 +44,23 @@ export default function ScrollRotatingCircularWrapper({
       const sign = direction === "clockwise" ? 1 : -1;
       const target = rotation * sign;
 
+      gsap.from(wrapperRef.current, {
+        autoAlpha: 0,
+        duration: 1.3,
+        rotation: `+=30`,
+      });
+
+      gsap.from(circle, {
+        autoAlpha: 0,
+        duration: 1.3,
+      });
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: wrapperRef.current,
           start,
           end,
           scrub,
-          // markers: true,
         },
         defaults: { ease: "none" },
       });
@@ -70,9 +80,9 @@ export default function ScrollRotatingCircularWrapper({
   return (
     <div
       ref={wrapperRef}
-      className={`absolute top-1/2 left-1/2 -translate-x-1/2 aspect-square ${className || ""}`}
+      className={`absolute top-1/2 left-1/2 -translate-x-1/2 aspect-square invisible ${className || ""}`}
     >
-      <CircularWrapper {...circularProps} containerClassName="" />
+      <CircularWrapper {...circularProps} containerClassName="invisible" />
     </div>
   );
 }

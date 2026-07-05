@@ -102,7 +102,7 @@ export default function Header() {
         <ThemeToggle />
 
         {isSmallerThanLg && (
-          <StaggeredMenu
+          <StaggeredMenu className="bg-red-500"
             items={[
               {
                 label: "About",

@@ -67,7 +67,7 @@ export default function Hero() {
             as="h2"
             duration={1.5}
             rotateFrom={-30}
-            className="text-2xl  sm:text-3xl md:text-5xl lg:text-[70px] font-stack font-black text-slate-950 dark:text-slate-50 leading-[1.15] lg:leading-[1.1] tracking-tight transition-colors duration-200"
+            className="text-2xl sm:text-3xl md:text-5xl lg:text-[70px] font-stack font-black text-slate-950 dark:text-slate-50 leading-[1.15] lg:leading-[1.1] tracking-tight transition-colors duration-200"
           >
             We engineer high-growth digital products
           </AnimatedTitle>
@@ -79,12 +79,12 @@ export default function Hero() {
             long-term success.
           </p>
           <div className="mt-2 flex md:w-auto max-w-80 flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center px-2">
-            <Button className="w-full sm:w-auto whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 dark:shadow-indigo-500/10 transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
+            <Button className=" animate-in fade-in slide-in-from-bottom-50 duration-1000 delay-1000 ease-out fill-mode-both w-full sm:w-auto whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 dark:shadow-indigo-500/10 transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
               <p>Book a discovery call</p>
               <CalendarClockIcon className="size-4 md:size-5" />
             </Button>
 
-            <Button className="w-full sm:w-auto whitespace-nowrap bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-850 dark:border-slate-800 dark:text-slate-200 font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-sm transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
+            <Button className=" animate-in fade-in slide-in-from-bottom-50 duration-1000 delay-1000 ease-out fill-mode-both w-full sm:w-auto whitespace-nowrap bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-850 dark:border-slate-800 dark:text-slate-200 font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-sm transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
               <p>Let&apos;s talk</p>
               <ArrowRight className="size-4 md:size-5" />
             </Button>

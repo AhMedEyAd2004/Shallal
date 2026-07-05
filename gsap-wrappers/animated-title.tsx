@@ -36,6 +36,7 @@ export default function AnimatedTitle({
       if (!targets || targets.length === 0) return;
 
       gsap.from(targets, {
+        autoAlpha: 0,
         yPercent: 110,
         rotateZ: rotateFrom,
         opacity: 0,
@@ -45,6 +46,7 @@ export default function AnimatedTitle({
         scrollTrigger: {
           trigger: containerRef.current,
           start,
+          anticipatePin: 1,
           toggleActions: "play none none reverse",
         },
       });
@@ -57,7 +59,7 @@ export default function AnimatedTitle({
       <Tag className={className}>
         {items.map((child, i) => (
           <span key={i} className="inline-block overflow-hidden">
-            <span data-title-item className="inline-block">
+            <span data-title-item className="inline-block invisible">
               {child}
             </span>
           </span>

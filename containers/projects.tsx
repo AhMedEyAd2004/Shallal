@@ -10,28 +10,28 @@ const PAGE_SIZE = 3;
 
 const projects = [
   {
-    image: "/image.png",
+    image: "/logo.png",
     title: "Project 1",
     description: "Description for Project 1",
     year: 2023,
     href: "/projects/1",
   },
   {
-    image: "/image.png",
+    image: "/logo.png",
     title: "Project 2",
     description: "Description for Project 2",
     year: 2023,
     href: "/projects/2",
   },
   {
-    image: "/image.png",
+    image: "/logo.png",
     title: "Project 3",
     description: "Description for Project 3",
     year: 2023,
     href: "/projects/3",
   },
   {
-    image: "/image.png",
+    image: "/logo.png",
     title: "Project 4",
     description: "Description for Project 4",
     year: 2024,

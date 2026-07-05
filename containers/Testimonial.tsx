@@ -15,28 +15,28 @@ const testimonials: Testimonial[] = [
     text: "Working with this team completely changed how fast we ship. The attention to detail is unreal.",
     name: "Sara Ahmed",
     role: "Product Lead, Nimbus",
-    img: "/image.png",
+    img: "/logo.png",
   },
   {
     id: "t2",
     text: "Every interaction felt intentional. It's rare to see motion design used this precisely.",
     name: "Omar Khaled",
     role: "Founder, Driftline",
-    img: "/image.png",
+    img: "/logo.png",
   },
   {
     id: "t3",
     text: "We asked for something different and got exactly that — a site that actually feels alive.",
     name: "Leila Nasser",
     role: "CMO, Faroui",
-    img: "/image.png",
+    img: "/logo.png",
   },
   {
     id: "t4",
     text: "The best collaborator we've had. Fast, sharp, and obsessed with getting the small things right.",
     name: "Yusuf Adel",
     role: "CTO, Marisol",
-    img: "/image.png",
+    img: "/logo.png",
   },
 ];
 

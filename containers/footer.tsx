@@ -40,7 +40,8 @@ export function StickyFooter() {
                   src="/logo.png"
                   alt="Shallal Logo"
                   width={120}
-                  height={40}
+                  height={120}
+                  // className="size-10"
                 />
                 <p className="mt-8 text-muted-foreground text-sm md:mt-0">
                   Software development company that specializes in building
