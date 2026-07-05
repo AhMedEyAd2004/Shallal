@@ -369,7 +369,7 @@ export default function StaggeredMenu({
       {mounted &&
         createPortal(
           <div
-            className="sm-scope"
+            className="sm-scope "
             style={
               accentColor
                 ? ({ "--sm-accent": accentColor } as React.CSSProperties)
@@ -404,7 +404,7 @@ export default function StaggeredMenu({
             <aside
               id="staggered-menu-panel"
               ref={panelRef}
-              className={`staggered-menu-panel fixed top-0 h-screen w-full sm:w-[420px] bg-white flex flex-col p-[6em_2em_2em_2em] overflow-y-auto z-[9998] backdrop-blur-[12px] ${
+              className={` staggered-menu-panel fixed top-0 h-dvh overscroll-none bg-white/90! w-full sm:w-105 flex flex-col p-[6em_2em_2em_2em] overflow-y-auto z-9998 backdrop-blur-md ${
                 position === "left" ? "left-0" : "right-0"
               }`}
               aria-hidden={!open}

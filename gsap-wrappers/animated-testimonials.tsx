@@ -233,7 +233,7 @@ export const CardStackCarousel = ({
 
       <div
         {...swipeHandlers}
-        className={`relative select-none flex-1 ${heightClassName}`}
+        className={`relative select-none flex-1 isolate  ${heightClassName}`}
       >
         {items.map((child, index) => {
           const id = ids[index];
