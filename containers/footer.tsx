@@ -1,11 +1,10 @@
-"use client";
-
 import { FacebookIcon } from "@/components/facebook-icon";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { LinkedinIcon } from "@/components/linkedin-icon";
 import { Button } from "@/components/ui/button";
 import { YoutubeIcon } from "@/components/youtube-icon";
 import AnimatedContainer from "@/gsap-wrappers/footer-animation";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 type FooterLink = {
@@ -37,10 +36,17 @@ export function StickyFooter() {
           <div className="relative mx-auto flex size-full max-w-6xl flex-col justify-between gap-5">
             <div className="grid grid-cols-1 gap-8 px-4 pt-12 md:grid-cols-2 lg:grid-cols-4">
               <AnimatedContainer className="w-full space-y-4">
-                Shallal logo
+                <Image
+                  src="/logo.png"
+                  alt="Shallal Logo"
+                  width={120}
+                  height={40}
+                />
                 <p className="mt-8 text-muted-foreground text-sm md:mt-0">
-                  footer description Lorem ipsum, dolor sit amet consectetur
-                  adipisicing elit. Qui, reprehenderit?
+                  Software development company that specializes in building
+                  high-quality web and mobile applications. We are committed to
+                  delivering innovative solutions that meet the unique needs of
+                  our clients.
                 </p>
                 <div className="flex gap-2">
                   {socialLinks.map((link, index) => (

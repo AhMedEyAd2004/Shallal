@@ -4,8 +4,8 @@ import { useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
-import AnimatedTitle from "@/gsap-wrappers/animated-title";
 import Image from "next/image";
+import LogoLoop, { LogoItem } from "@/components/static/LogoLoop";
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -21,17 +21,32 @@ const PATH_COLORS = [
   { dot: "bg-fuchsia-500", tail: "after:bg-fuchsia-500" },
 ];
 
-export default function PlatformProvider() {
+export interface CompanyItem {
+  companyName: string;
+  companyImage: string;
+  countryName: string;
+  countryImage: string;
+}
+
+interface PlatformsServedProps {
+  companies: CompanyItem[];
+  logoSrc: string;
+  children: React.ReactNode;
+}
+
+export default function PlatformsServed({
+  companies,
+  logoSrc,
+  children,
+}: PlatformsServedProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const svgWrapperRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const timelinesRef = useRef<gsap.core.Timeline[]>([]);
 
-  // Helper function to dynamically position the SVG wrapper relative to the logo node on mount/resize
   const alignSvgWrapper = () => {
     if (!logoRef.current || !svgWrapperRef.current) return;
-    console.log("her");
     gsap.set(svgWrapperRef.current, { x: 0, y: 0 });
 
     const delta = MotionPathPlugin.getRelativePosition(
@@ -49,7 +64,6 @@ export default function PlatformProvider() {
 
   useGSAP(
     () => {
-      // 1. DOT TIMELINES — fully independent of the logo, always runs
       if (svgWrapperRef.current) {
         timelinesRef.current.forEach((tl) => tl.kill());
         timelinesRef.current = [];
@@ -96,7 +110,6 @@ export default function PlatformProvider() {
           });
       }
 
-      // 2. LOGO ALIGNMENT — separate concern, can't block the dots above
       if (logoRef.current && svgWrapperRef.current) {
         alignSvgWrapper();
       }
@@ -124,27 +137,13 @@ export default function PlatformProvider() {
       className="size-full font-stack py-20 flex flex-col items-center"
     >
       <div className="flex relative w-full justify-center items-center h-20 lg:h-32">
-        <AnimatedTitle
-          rotateFrom={-30}
-          as="p"
-          className="absolute top-1/2 -translate-y-1/2 right-[calc(50%+45px)] lg:right-[calc(50%+75px)] text-nowrap text-sm md:text-xl shrink-0 lg:text-4xl"
-        >
-          Served over
-        </AnimatedTitle>
-
-        <AnimatedTitle
-          rotateFrom={30}
-          as="p"
-          className="absolute top-1/2 -translate-y-1/2 left-[calc(50%+35px)] lg:left-[calc(50%+60px)] text-nowrap px-3 py-1 shrink-0 text-sm md:text-xl lg:text-4xl"
-        >
-          +10 companies
-        </AnimatedTitle>
+        {children}
 
         <div
           ref={logoRef}
           className="relative shrink-0 size-8 lg:size-20 border rounded-2xl p-4 lg:p-5 box-content z-10 bg-background overflow-hidden"
         >
-          <Image src="/logo.png" alt="Logo" fill />
+          <Image src={logoSrc} alt="Logo" fill />
         </div>
       </div>
 
@@ -220,10 +219,40 @@ export default function PlatformProvider() {
       </div>
 
       <div className="border font-inter border-border rounded-xl -mt-12 lg:-mt-8 bg-card p-5 w-full max-w-180 z-10 mx-5 text-foreground">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Doloribus error
-        recusandae, maiores quaerat earum ea deleniti fugiat debitis veniam
-        dolorum vero tenetur, quae eligendi accusantium sint iure adipisci modi
-        reiciendis?
+        <LogoLoop
+          logos={companies as unknown as LogoItem[]}
+          speed={80}
+          gap={48}
+          logoHeight={56}
+          fadeOut
+          className="[--logoloop-fadeColorAuto:var(--card)]!"
+          pauseOnHover
+          ariaLabel="Companies we work with"
+          renderItem={(item, key) => {
+            const company = item as unknown as CompanyItem;
+            return (
+              <div
+                key={key}
+                className="relative shrink-0 size-12 lg:size-16 "
+                title={`${company.companyName} — ${company.countryName}`}
+              >
+                <Image
+                  src={company.companyImage}
+                  alt={company.companyName}
+                  fill
+                  className="object-contain rounded-lg"
+                />
+                <div className="absolute bottom-0 -right-1 size-6 rounded-full border-2 overflow-hidden border-border bg-background">
+                  <Image
+                    src={company.countryImage}
+                    alt={company.countryName}
+                    fill
+                  />
+                </div>
+              </div>
+            );
+          }}
+        />
       </div>
     </div>
   );
