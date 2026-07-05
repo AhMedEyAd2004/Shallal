@@ -21,6 +21,8 @@ export default function ScrollPinnedSlides({
 
   useGSAP(
     () => {
+      ScrollTrigger.config({ ignoreMobileResize: true });
+
       const panels = gsap.utils.toArray<HTMLElement>(".pinned-panel");
       const lines = gsap.utils.toArray<HTMLElement>(".clip-line");
       if (panels.length <= 1) return;
@@ -48,6 +50,7 @@ export default function ScrollPinnedSlides({
             end: `+=${calculatedDistance}`,
             pin: true,
             scrub: 1,
+            anticipatePin: 1,
             invalidateOnRefresh: true,
           },
         });

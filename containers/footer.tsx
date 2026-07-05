@@ -1,12 +1,12 @@
 "use client";
-import { motion, useReducedMotion } from "motion/react";
-import type React from "react";
-import type { ReactNode } from "react";
+
 import { FacebookIcon } from "@/components/facebook-icon";
 import { InstagramIcon } from "@/components/instagram-icon";
 import { LinkedinIcon } from "@/components/linkedin-icon";
-import { YoutubeIcon } from "@/components/youtube-icon";
 import { Button } from "@/components/ui/button";
+import { YoutubeIcon } from "@/components/youtube-icon";
+import AnimatedContainer from "@/gsap-wrappers/footer-animation";
+import type { ReactNode } from "react";
 
 type FooterLink = {
   title: string;
@@ -96,26 +96,10 @@ export function StickyFooter() {
 }
 
 const socialLinks = [
-  {
-    title: "Facebook",
-    href: "#",
-    icon: <FacebookIcon />,
-  },
-  {
-    title: "Instagram",
-    href: "#",
-    icon: <InstagramIcon />,
-  },
-  {
-    title: "Youtube",
-    href: "#",
-    icon: <YoutubeIcon />,
-  },
-  {
-    title: "LinkedIn",
-    href: "#",
-    icon: <LinkedinIcon />,
-  },
+  { title: "Facebook", href: "#", icon: <FacebookIcon /> },
+  { title: "Instagram", href: "#", icon: <InstagramIcon /> },
+  { title: "Youtube", href: "#", icon: <YoutubeIcon /> },
+  { title: "LinkedIn", href: "#", icon: <LinkedinIcon /> },
 ];
 
 const footerLinkGroups: FooterLinkGroup[] = [
@@ -173,32 +157,3 @@ const footerLinkGroups: FooterLinkGroup[] = [
     ],
   },
 ];
-
-type AnimatedContainerProps = React.ComponentProps<typeof motion.div> & {
-  children?: React.ReactNode;
-  delay?: number;
-};
-
-function AnimatedContainer({
-  delay = 0.1,
-  children,
-  ...props
-}: AnimatedContainerProps) {
-  const shouldReduceMotion = useReducedMotion();
-
-  if (shouldReduceMotion) {
-    return children;
-  }
-
-  return (
-    <motion.div
-      initial={{ filter: "blur(4px)", translateY: -8, opacity: 0 }}
-      transition={{ delay, duration: 0.8 }}
-      viewport={{ once: true }}
-      whileInView={{ filter: "blur(0px)", translateY: 0, opacity: 1 }}
-      {...props}
-    >
-      {children}
-    </motion.div>
-  );
-} //translate this container to gsap

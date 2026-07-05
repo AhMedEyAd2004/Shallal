@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter, Stack_Sans_Notch } from "next/font/google";
-import "./globals.css";
-import Navbar from "@/containers/navbar";
 import { ThemeProvider } from "@/providers/theme-provide";
+import type { Metadata } from "next";
+import { Inter, Stack_Sans_Notch } from "next/font/google";
+import "./globals.css";
 
 const stackSansNotch = Stack_Sans_Notch({
   variable: "--font-stack-sans",
@@ -39,8 +38,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <div>{children}</div>
+          {children}
         </ThemeProvider>
       </body>
     </html>

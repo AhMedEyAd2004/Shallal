@@ -1,15 +1,14 @@
 "use client";
 
-import { JSX, useRef } from "react";
+import { JSX, useRef, Children } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
+gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 interface AnimatedTitleProps {
-  children: string;
+  children: React.ReactNode;
   as?: keyof JSX.IntrinsicElements;
   className?: string;
   rotateFrom?: number;
@@ -28,32 +27,26 @@ export default function AnimatedTitle({
   start = "top 85%",
 }: AnimatedTitleProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const items = Children.toArray(children);
 
   useGSAP(
     () => {
-      const target = containerRef.current?.querySelector(
-        "[data-title]",
-      ) as HTMLElement;
-      if (!target) return;
+      const targets =
+        containerRef.current?.querySelectorAll("[data-title-item]");
+      if (!targets || targets.length === 0) return;
 
-      SplitText.create(target, {
-        type: "lines",
-        mask: "lines", // auto-wraps each line in an overflow-hidden mask, no manual DOM work
-        autoSplit: true,
-        onSplit: (self) =>
-          gsap.from(self.lines, {
-            yPercent: 110,
-            rotateZ: rotateFrom,
-            opacity: 0,
-            duration,
-            stagger,
-            ease: "power4.out",
-            scrollTrigger: {
-              trigger: containerRef.current,
-              start,
-              toggleActions: "play none none reverse",
-            },
-          }),
+      gsap.from(targets, {
+        yPercent: 110,
+        rotateZ: rotateFrom,
+        opacity: 0,
+        duration,
+        stagger,
+        ease: "power4.out",
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start,
+          toggleActions: "play none none reverse",
+        },
       });
     },
     { scope: containerRef, dependencies: [children] },
@@ -61,8 +54,14 @@ export default function AnimatedTitle({
 
   return (
     <div ref={containerRef}>
-      <Tag data-title className={className}>
-        {children}
+      <Tag className={className}>
+        {items.map((child, i) => (
+          <span key={i} className="inline-block overflow-hidden">
+            <span data-title-item className="inline-block">
+              {child}
+            </span>
+          </span>
+        ))}
       </Tag>
     </div>
   );

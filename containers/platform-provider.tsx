@@ -4,8 +4,8 @@ import { useRef, useEffect } from "react";
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
-import { RefreshCcw } from "lucide-react";
 import AnimatedTitle from "@/gsap-wrappers/animated-title";
+import Image from "next/image";
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -23,7 +23,7 @@ const PATH_COLORS = [
 
 export default function PlatformProvider() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const logoRef = useRef<SVGSVGElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
   const svgWrapperRef = useRef<HTMLDivElement>(null);
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const timelinesRef = useRef<gsap.core.Timeline[]>([]);
@@ -31,89 +31,84 @@ export default function PlatformProvider() {
   // Helper function to dynamically position the SVG wrapper relative to the logo node on mount/resize
   const alignSvgWrapper = () => {
     if (!logoRef.current || !svgWrapperRef.current) return;
-
-    // Zero out any previous transformations to measure base bounding rectangles cleanly
+    console.log("her");
     gsap.set(svgWrapperRef.current, { x: 0, y: 0 });
 
     const delta = MotionPathPlugin.getRelativePosition(
       svgWrapperRef.current,
       logoRef.current,
       [0.5, 0],
-      [0.5, 1.15],
+      [0.5, 0.9],
     );
 
     gsap.set(svgWrapperRef.current, {
-      x: delta.x,
-      y: delta.y,
+      x: "+=" + delta.x,
+      y: "+=" + delta.y,
     });
   };
 
   useGSAP(
     () => {
-      if (!logoRef.current || !svgWrapperRef.current) return;
+      // 1. DOT TIMELINES — fully independent of the logo, always runs
+      if (svgWrapperRef.current) {
+        timelinesRef.current.forEach((tl) => tl.kill());
+        timelinesRef.current = [];
 
-      // 1. Initial vector positioning calculation
-      alignSvgWrapper();
+        gsap.utils
+          .toArray<SVGPathElement>("[id^='path-']", containerRef.current)
+          .forEach((pathEl, i) => {
+            const dot = dotRefs.current[i];
+            if (!dot) return;
 
-      // Clear out any old timelines if this hook re-runs
-      timelinesRef.current.forEach((tl) => tl.kill());
-      timelinesRef.current = [];
+            const tl = gsap.timeline({ repeat: -1 });
 
-      // 2. Build the dot motion paths loop
-      gsap.utils
-        .toArray<SVGPathElement>("[id^='path-']")
-        .forEach((pathEl, i) => {
-          const dot = dotRefs.current[i];
-          if (!dot) return;
+            tl.set(dot, { autoAlpha: 1 })
+              .to(dot, {
+                motionPath: {
+                  path: pathEl,
+                  align: pathEl,
+                  alignOrigin: [0.5, 0.5],
+                  autoRotate: true,
+                  start: 0,
+                  end: 1,
+                },
+                duration: gsap.utils.random(1.2, 2.5),
+                delay: gsap.utils.random(0.5, 3),
+                ease: "power2.inOut",
+              })
+              .set(dot, { autoAlpha: 0 })
+              .set(dot, { autoAlpha: 1 }, `+=${gsap.utils.random(0.5, 3)}`)
+              .to(dot, {
+                duration: gsap.utils.random(1.2, 2.5),
+                motionPath: {
+                  path: pathEl,
+                  align: pathEl,
+                  alignOrigin: [0.5, 0.5],
+                  autoRotate: true,
+                  start: 1,
+                  end: 0,
+                },
+                ease: "power2.inOut",
+              })
+              .set(dot, { autoAlpha: 0 });
 
-          const tl = gsap.timeline({ repeat: -1 });
+            timelinesRef.current.push(tl);
+          });
+      }
 
-          tl.set(dot, { autoAlpha: 1 })
-            .to(dot, {
-              motionPath: {
-                path: pathEl,
-                align: pathEl,
-                alignOrigin: [0.5, 0.5],
-                autoRotate: true,
-                start: 0,
-                end: 1,
-              },
-              duration: gsap.utils.random(1.2, 2.5),
-              delay: gsap.utils.random(0.5, 3),
-              ease: "power2.inOut",
-            })
-            .set(dot, { autoAlpha: 0 })
-            .set(dot, { autoAlpha: 1 }, `+=${gsap.utils.random(0.5, 3)}`)
-            .to(dot, {
-              duration: gsap.utils.random(1.2, 2.5),
-              motionPath: {
-                path: pathEl,
-                align: pathEl,
-                alignOrigin: [0.5, 0.5],
-                autoRotate: true,
-                start: 1,
-                end: 0,
-              },
-              ease: "power2.inOut",
-            })
-            .set(dot, { autoAlpha: 0 });
-
-          // Keep track of active timelines so we can refresh them on window resizing
-          timelinesRef.current.push(tl);
-        });
+      // 2. LOGO ALIGNMENT — separate concern, can't block the dots above
+      if (logoRef.current && svgWrapperRef.current) {
+        alignSvgWrapper();
+      }
     },
     { scope: containerRef },
   );
 
-  // 3. EFFECT LAYER: Listens for resize events to force GSAP to refresh motion vector parameters
   useEffect(() => {
     const handleResize = () => {
-      // Re-align the parent wrapper element relative to the responsive logo position
       alignSvgWrapper();
 
-      // Loop through and force recalculation of internal tracking lines
       timelinesRef.current.forEach((tl) => {
-        // Capture current progress point state, invalidate internal coordinates cache, and restart loop smoothly
         const progress = tl.progress();
         tl.invalidate().progress(progress);
       });
@@ -142,13 +137,15 @@ export default function PlatformProvider() {
           as="p"
           className="absolute top-1/2 -translate-y-1/2 left-[calc(50%+35px)] lg:left-[calc(50%+60px)] text-nowrap px-3 py-1 shrink-0 text-sm md:text-xl lg:text-4xl"
         >
-          +100 companies
+          +10 companies
         </AnimatedTitle>
 
-        <RefreshCcw
+        <div
           ref={logoRef}
-          className="shrink-0 size-8 lg:size-20 border rounded-2xl p-4 lg:p-5 box-content z-10 bg-background"
-        />
+          className="relative shrink-0 size-8 lg:size-20 border rounded-2xl p-4 lg:p-5 box-content z-10 bg-background overflow-hidden"
+        >
+          <Image src="/logo.png" alt="Logo" fill />
+        </div>
       </div>
 
       <div
@@ -158,7 +155,7 @@ export default function PlatformProvider() {
         <svg
           viewBox="0 0 594 188"
           fill="none"
-          xmlns="http://w3.org"
+          xmlns="http://www.w3.org/2000/svg"
           className="absolute inset-0 w-full h-full text-gray-300!"
           preserveAspectRatio="none"
         >

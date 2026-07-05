@@ -11,6 +11,7 @@ import {
   ZodIcon,
 } from "@/components/static/logo-Svgs";
 import { Button } from "@/components/ui/button";
+import AnimatedTitle from "@/gsap-wrappers/animated-title";
 import ScrollRotatingCircularWrapper from "@/gsap-wrappers/ScrollRotatingCircularWrapper";
 import { ArrowRight, CalendarClockIcon } from "lucide-react";
 
@@ -62,15 +63,21 @@ export default function Hero() {
         />
 
         <div className="flex flex-col items-center justify-center p-4 gap-4 sm:gap-5 lg:gap-6 text-center max-w-105 sm:max-w-2xl md:max-w-2xl lg:max-w-[65vw] select-none mx-auto tracking-normal z-10">
-          <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-[70px] font-stack font-black text-slate-950 dark:text-slate-50 leading-[1.15] lg:leading-[1.1] tracking-tight transition-colors duration-200">
+          <AnimatedTitle
+            as="h2"
+            duration={1.5}
+            rotateFrom={-30}
+            className="text-2xl  sm:text-3xl md:text-5xl lg:text-[70px] font-stack font-black text-slate-950 dark:text-slate-50 leading-[1.15] lg:leading-[1.1] tracking-tight transition-colors duration-200"
+          >
             We engineer high-growth digital products
-          </h2>
+          </AnimatedTitle>
 
-          <p className="font-inter text-sm sm:text-base md:text-lg lg:text-[20px] font-normal text-slate-700 dark:text-slate-300 leading-relaxed lg:leading-normal max-w-[90%] lg:max-w-[85%] transition-colors duration-200">
-            From modern web platforms to native mobile apps, we write clean,
-            scalable code that brings your product vision to life.
+          <p className="font-inter text-sm sm:text-base md:text-lg lg:text-[20px] font-normal text-slate-700 dark:text-slate-300 leading-relaxed lg:leading-normal max-w-[90%] lg:max-w-[85%] transition-colors animate-in fade-in slide-in-from-bottom-50 duration-1000 delay-1000 ease-out fill-mode-both">
+            We transform ideas into fast, secure, and scalable digital products
+            that help businesses grow. From mobile apps and websites to complete
+            business management systems, we deliver software designed for
+            long-term success.
           </p>
-
           <div className="mt-2 flex md:w-auto max-w-80 flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center px-2">
             <Button className="w-full sm:w-auto whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 dark:shadow-indigo-500/10 transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
               <p>Book a discovery call</p>

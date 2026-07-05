@@ -73,9 +73,18 @@ export default function Header() {
       ref={headerRef}
       className="fixed top-0 z-100 flex items-center h-16 justify-between px-6 py-3 md:py-4 shadow-sm border border-border bg-background/80 backdrop-blur-md w-full max-w-full rounded-none"
     >
-      <Link href="#">sdfs</Link>
+      <Link href="#" className="flex gap-2 items-center">
+        <Image
+          src={"/logo.png"}
+          alt="Logo"
+          width={48}
+          height={48}
+          className="rounded-md overflow-hidden"
+        />
+        <h1 className="font-stack italic font-bold tracking-wider">Shallal Programming</h1>
+      </Link>
 
-      <nav className="hidden md:flex items-center justify-center gap-8 text-foreground text-sm font-normal">
+      <nav className="hidden  lg:flex items-center justify-center gap-8 text-foreground text-sm font-normal">
         {navLinks.map((link) => (
           <Link
             key={link.label}

@@ -1,7 +1,7 @@
 "use client";
 
 import AnimatedTitle from "@/gsap-wrappers/animated-title";
-import ScrollPinnedSlides from "@/gsap-wrappers/scroll-pinned-clipedSlides";
+import ScrollPinnedSlides from "@/gsap-wrappers/scroll-pinned-aboutUs";
 import ScrollRevealText from "@/gsap-wrappers/scroll-reveal";
 import { Globe, Smartphone, Settings } from "lucide-react";
 
@@ -62,7 +62,6 @@ export default function AboutUs() {
       </section>
 
       {/* --- SLIDE 3: WHY CHOOSE US --- */}
-      {/* Changed px-6 to px-0 on mobile to allow the horizontal track to overflow cleanly edge-to-edge */}
       <section className="relative w-full h-full px-0 md:px-6 py-20 md:py-32 flex flex-col items-center justify-center bg-background overflow-hidden">
         {/* orbs */}
         <div className="pointer-events-none absolute top-[-15%] left-[-10%] h-104 w-104 rounded-full bg-foreground/5 blur-3xl" />
