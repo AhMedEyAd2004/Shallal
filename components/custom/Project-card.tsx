@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ResponsiveDrawer } from "./responsiveDrawer";
+import { Button } from "../ui/button";
 
 interface ProjectCardProps {
   image: string;
@@ -45,13 +46,13 @@ export default function ProjectCard({
             {description}
           </p>
 
-          <Link
-            href={href}
+          <Button
+            variant={null}
             className="mt-2 inline-flex w-fit items-center gap-1.5 rounded-full bg-transparent px-0 py-1 text-sm font-medium text-card-foreground/80 transition-colors hover:text-card-foreground"
           >
             Open
             <ArrowRight className="h-4 w-4 transition-transform duration-300 ease-out group-hover:translate-x-1" />
-          </Link>
+          </Button>
         </div>
       </div>
     </ResponsiveDrawer>

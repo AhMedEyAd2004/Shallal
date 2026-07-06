@@ -1,24 +1,27 @@
 "use client";
 
-import { useRef } from "react";
-import Link from "next/link";
-import Image from "next/image";
+import StaggeredMenu from "@/components/custom/staggeredMenu";
+import { FacebookIcon } from "@/components/facebook-icon";
+import { LinkedinIcon } from "@/components/linkedin-icon";
+import { ThemeToggle } from "@/components/static/theme-toggle";
 import { Button } from "@/components/ui/button";
+import HoverText from "@/gsap-wrappers/Button-animation-onHover";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
-import StaggeredMenu from "@/components/custom/staggeredMenu";
-import { GiftIcon, Link2Icon, MenuIcon } from "lucide-react";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { ThemeToggle } from "@/components/static/theme-toggle";
-import HoverText from "@/gsap-wrappers/Button-animation-onHover";
+import { MenuIcon } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRef } from "react";
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const navLinks = [
-  { label: "About us", href: "#about" },
-  { label: "Projects", href: "#projects" },
-  { label: "Blogs", href: "#blogs" },
+  { label: "About us", href: "/home#about" },
+  { label: "Projects", href: "/home#projects" },
+  { label: "Blogs", href: "/home#blogs" },
+  { label: "Contact", href: "/contact-us" },
 ];
 
 export default function Header() {
@@ -73,7 +76,7 @@ export default function Header() {
       ref={headerRef}
       className="fixed top-0 z-100 flex items-center h-16 justify-between px-6 py-3 md:py-4 shadow-sm border border-border bg-background/80 backdrop-blur-md w-full max-w-full rounded-none"
     >
-      <Link href="#" className="flex gap-2 items-center">
+      <Link href="/home" className="flex gap-2 items-center">
         <Image
           src={"/logo.png"}
           alt="Logo"
@@ -106,39 +109,31 @@ export default function Header() {
             items={[
               {
                 label: "About",
-                link: "#",
-                className:
-                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
+                link: "/home#about",
+              },
+              {
+                label: "Projects",
+                link: "/home#projects",
+              },
+              {
+                label: "Blogs",
+                link: "/home#blogs",
               },
               {
                 label: "Contact",
-                link: "#",
-                className:
-                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
-              },
-              {
-                label: "Pricing",
-                link: "#",
-                className:
-                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
-              },
-              {
-                label: "Products",
-                link: "#",
-                className:
-                  "font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3",
+                link: "/contact-us",
               },
             ]}
             socialItems={[
               {
-                label: "GitHub",
-                link: "https://github.com",
-                icon: <GiftIcon />,
+                label: "facebook",
+                link: "https://facebook.com",
+                icon: <FacebookIcon />,
               },
               {
                 label: "LinkedIn",
                 link: "https://linkedin.com",
-                icon: <Link2Icon />,
+                icon: <LinkedinIcon />,
               },
             ]}
           >
@@ -156,7 +151,7 @@ export default function Header() {
           asChild
           className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-full text-sm font-medium"
         >
-          <Link href="#">
+          <Link href="/log-in">
             <HoverText totalDuration={0.4}>Sign up</HoverText>
           </Link>
         </Button>

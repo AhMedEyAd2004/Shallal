@@ -21,7 +21,7 @@ export default function ServicedPlatforms() {
 
       <AnimatedTitle
         rotateFrom={30}
-        as="p"
+        as="div"
         className="absolute top-1/2 -translate-y-1/2 left-[calc(50%+35px)] lg:left-[calc(50%+60px)] text-nowrap px-3 py-1 shrink-0 text-sm md:text-xl lg:text-4xl"
       >
         <div>

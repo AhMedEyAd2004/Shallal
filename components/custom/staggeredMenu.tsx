@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
+import Link from "next/link";
+import HoverText from "@/gsap-wrappers/Button-animation-onHover";
+import { Button } from "../ui/button";
 
 gsap.registerPlugin(useGSAP);
 
@@ -440,9 +442,10 @@ export default function StaggeredMenu({
                       key={it.label + idx}
                       className="sm-panel-itemWrap relative overflow-hidden leading-none"
                     >
-                      <a
-                        className={`sm-panel-item relative text-black font-semibold text-[4rem] sm:text-[3rem] leading-none tracking-[-1px] uppercase inline-block whitespace-nowrap no-underline pr-[2.5rem] ${it.className ?? ""}`}
+                      <Link
+                        className={`sm-panel-item relative text-black font-semibold text-[4rem] sm:text-[3rem] leading-none tracking-[-1px] uppercase inline-block whitespace-nowrap no-underline pr-[2.5rem] font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3 ${it.className ?? ""}`}
                         href={it.link}
+                        onClick={closeMenu}
                         aria-label={it.ariaLabel ?? it.label}
                         data-index={idx + 1}
                       >
@@ -451,40 +454,51 @@ export default function StaggeredMenu({
                             {it.label}
                           </span>
                         </span>
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
 
-                {displaySocials && socialItems.length > 0 && (
-                  <div className="mt-auto pt-8 flex flex-col gap-3">
-                    <h3
-                      className="sm-socials-title m-0 text-base font-medium"
-                      style={{ color: "var(--sm-accent, #ff0000)" }}
-                    >
-                      Socials
-                    </h3>
-                    <ul className="list-none m-0 p-0 flex flex-row items-center gap-4 flex-wrap">
-                      {socialItems.map((s, i) => (
-                        <li key={s.label + i}>
-                          <a
-                            href={s.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`sm-socials-link inline-flex items-center gap-2 text-[1.2rem] font-medium text-[#111] no-underline ${s.className ?? ""}`}
-                          >
-                            {s.icon && (
-                              <span className="sm-socials-icon inline-flex w-[1.1em] h-[1.1em] shrink-0">
-                                {s.icon}
-                              </span>
-                            )}
-                            {s.label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <div className="mt-auto pt-8 flex flex-col gap-3">
+                  <Button
+                    asChild
+                    className="flex bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-full text-sm font-medium"
+                  >
+                    <Link href="/log-in" onClick={() => closeMenu()}>
+                      <HoverText totalDuration={0.4}>Sign up</HoverText>
+                    </Link>
+                  </Button>
+                  {displaySocials && socialItems.length > 0 && (
+                    <>
+                      <h3
+                        className="sm-socials-title m-0 text-base font-medium"
+                        style={{ color: "var(--sm-accent, #ff0000)" }}
+                      >
+                        Socials
+                      </h3>
+                      <ul className="list-none m-0 p-0 flex flex-row items-center gap-4 flex-wrap">
+                        {socialItems.map((s, i) => (
+                          <li key={s.label + i}>
+                            <Link
+                              href={s.link}
+                              onClick={closeMenu}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`sm-socials-link cursor-pointer inline-flex items-center gap-2 text-[1.2rem] font-medium text-[#111] no-underline ${s.className ?? ""}`}
+                            >
+                              {s.icon && (
+                                <span className="sm-socials-icon inline-flex w-[1.1em] h-[1.1em] shrink-0">
+                                  {s.icon}
+                                </span>
+                              )}
+                              {s.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
               </div>
             </aside>
           </div>,

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import AnimatedTitle from "@/gsap-wrappers/animated-title";
 import ScrollRotatingCircularWrapper from "@/gsap-wrappers/ScrollRotatingCircularWrapper";
 import { ArrowRight, CalendarClockIcon } from "lucide-react";
+import Link from "next/link";
 
 const INNER_LOOP_ICONS = [
   <FigmaIcon key="inner-figma" className="text-4xl lg:text-6xl" />,
@@ -84,9 +85,17 @@ export default function Hero() {
               <CalendarClockIcon className="size-4 md:size-5" />
             </Button>
 
-            <Button className=" animate-in fade-in slide-in-from-bottom-50 duration-1000 delay-1000 ease-out fill-mode-both w-full sm:w-auto whitespace-nowrap bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-850 dark:border-slate-800 dark:text-slate-200 font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-sm transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
-              <p>Let&apos;s talk</p>
-              <ArrowRight className="size-4 md:size-5" />
+            <Button
+              asChild
+              className=" animate-in fade-in slide-in-from-bottom-50 duration-1000 delay-1000 ease-out fill-mode-both w-full sm:w-auto whitespace-nowrap bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-850 dark:border-slate-800 dark:text-slate-200 font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-sm transition-all active:scale-98 will-change-transform cursor-pointer "
+            >
+              <Link
+                href="/contact-us"
+                className="flex items-center justify-center gap-1"
+              >
+                <p>Let&apos;s talk</p>
+                <ArrowRight className="size-4 md:size-5" />
+              </Link>
             </Button>
           </div>
         </div>
