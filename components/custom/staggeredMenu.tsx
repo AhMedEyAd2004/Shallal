@@ -33,6 +33,7 @@ export interface StaggeredMenuProps {
   colors?: string[];
   accentColor?: string;
   closeOnClickAway?: boolean;
+  footer?: React.ReactNode;
   onMenuOpen?: () => void;
   onMenuClose?: () => void;
   className?: string;
@@ -50,6 +51,7 @@ export default function StaggeredMenu({
   accentColor = "#5227FF",
   closeOnClickAway = true,
   onMenuOpen,
+  footer,
   onMenuClose,
   className,
   children,
@@ -434,16 +436,16 @@ export default function StaggeredMenu({
               </button>
               <div className="flex-1 flex flex-col gap-5">
                 <ul
-                  className="sm-panel-list list-none m-0 p-0 flex flex-col gap-2"
+                  className="sm-panel-list list-none m-0 p-0 flex flex-col gap-4"
                   data-numbering={displayItemNumbering || undefined}
                 >
                   {items.map((it, idx) => (
                     <li
                       key={it.label + idx}
-                      className="sm-panel-itemWrap relative overflow-hidden leading-none"
+                      className="sm-panel-itemWrap relative overflow-visibile leading-none"
                     >
                       <Link
-                        className={`sm-panel-item relative text-black font-semibold text-[4rem] sm:text-[3rem] leading-none tracking-[-1px] uppercase inline-block whitespace-nowrap no-underline pr-[2.5rem] font-stack text-[clamp(2.75rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3 ${it.className ?? ""}`}
+                        className={`sm-panel-item relative text-black font-semibold text-[4rem] sm:text-[3rem] leading-none tracking-[-1px] uppercase inline-block whitespace-nowrap no-underline pl-[1rem] font-stack text-[clamp(2.65rem,10vw,10rem)] [&:hover_.sm-panel-itemText]:-rotate-3 ${it.className ?? ""}`}
                         href={it.link}
                         onClick={closeMenu}
                         aria-label={it.ariaLabel ?? it.label}
@@ -460,14 +462,7 @@ export default function StaggeredMenu({
                 </ul>
 
                 <div className="mt-auto pt-8 flex flex-col gap-3">
-                  <Button
-                    asChild
-                    className="flex bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-full text-sm font-medium"
-                  >
-                    <Link href="/log-in" onClick={() => closeMenu()}>
-                      <HoverText totalDuration={0.4}>Sign up</HoverText>
-                    </Link>
-                  </Button>
+                  {footer}
                   {displaySocials && socialItems.length > 0 && (
                     <>
                       <h3
@@ -510,7 +505,7 @@ export default function StaggeredMenu({
         .sm-scope .sm-panel-list[data-numbering] .sm-panel-item::after {
           counter-increment: smItem;
           content: counter(smItem, decimal-leading-zero);
-         position: absolute; top: 0.15em; right: 5%;
+         position: absolute; top: 0.15em; left: -3%;
           font-size: 0.35em; font-weight: 400;
           color: var(--sm-accent, #ff0000);
           opacity: var(--sm-num-opacity, 0);

@@ -1,26 +1,20 @@
-import { FacebookIcon } from "@/components/facebook-icon";
-import { InstagramIcon } from "@/components/instagram-icon";
-import { LinkedinIcon } from "@/components/linkedin-icon";
 import { Button } from "@/components/ui/button";
-import { YoutubeIcon } from "@/components/youtube-icon";
 import AnimatedContainer from "@/gsap-wrappers/footer-animation";
 import Image from "next/image";
-import type { ReactNode } from "react";
 
 type FooterLink = {
   title: string;
   href: string;
-  icon?: ReactNode;
-};
-type FooterLinkGroup = {
-  label: string;
-  links: FooterLink[];
 };
 
-export function StickyFooter() {
+export async function StickyFooter({
+  socialLinks,
+}: {
+  socialLinks: { id: string; platform: string; url_or_number: string }[];
+}) {
   return (
     <footer
-      className="relative h-(--footer-height) w-full border-t [--footer-height:520px]"
+      className="relative h-(--footer-height) w-full border-t [--footer-height:420px]"
       style={{ clipPath: "polygon(0% 0, 100% 0%, 100% 100%, 0 100%)" }}
     >
       <div className="fixed bottom-0 h-(--footer-height) w-full">
@@ -33,8 +27,9 @@ export function StickyFooter() {
             <div className="absolute top-0 left-0 h-56 w-24 sm:h-320 sm:w-60 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)] [translate:5%_-50%]" />
             <div className="absolute top-0 left-0 h-56 w-24 sm:h-320 sm:w-60 -translate-y-[27%] -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,--theme(--color-foreground/.04)_0,--theme(--color-foreground/.01)_80%,transparent_100%)]" />
           </div>
+
           <div className="relative mx-auto flex size-full max-w-6xl flex-col justify-between gap-5">
-            <div className="grid grid-cols-1 gap-8 px-4 pt-12 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-8 px-4 pt-12 md:grid-cols-3">
               <AnimatedContainer className="w-full space-y-4">
                 <Image
                   src="/logo.png"
@@ -48,51 +43,54 @@ export function StickyFooter() {
                   delivering innovative solutions that meet the unique needs of
                   our clients.
                 </p>
-                <div className="flex gap-2">
-                  {socialLinks.map((link, index) => (
-                    <Button
-                      asChild
-                      key={`social-${link.href}-${index}`}
-                      size="icon-sm"
-                      variant="outline"
-                    >
-                      <a href={link.href}>{link.icon}</a>
-                    </Button>
-                  ))}
-                </div>
               </AnimatedContainer>
-              {footerLinkGroups.map((group, index) => (
-                <AnimatedContainer
-                  className="w-full"
-                  delay={0.1 + index * 0.1}
-                  key={group.label}
-                >
-                  <div className="mb-10 md:mb-0">
-                    <h3 className="text-sm uppercase">{group.label}</h3>
-                    <ul className="mt-4 space-y-2 text-muted-foreground text-sm md:text-xs lg:text-sm">
-                      {group.links.map((link) => (
-                        <li key={link.title}>
-                          <a
-                            className="inline-flex items-center hover:text-foreground [&_svg]:me-1 [&_svg]:size-4"
-                            href={link.href}
-                          >
-                            {link.icon}
-                            {link.title}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </AnimatedContainer>
-              ))}
+
+              <AnimatedContainer className="w-full" delay={0.1}>
+                <h3 className="text-sm uppercase">Quick Links</h3>
+                <ul className="mt-4 space-y-2 text-muted-foreground text-sm">
+                  {quickLinks.map((link) => (
+                    <li key={link.title}>
+                      <a className="hover:text-foreground" href={link.href}>
+                        {link.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </AnimatedContainer>
+
+              <AnimatedContainer className="w-full" delay={0.2}>
+                <h3 className="text-sm uppercase">Get in Touch</h3>
+                <ul className="mt-4 space-y-2 text-muted-foreground text-sm">
+                  {socialLinks.map((link) => {
+                    const isPhone =
+                      link.platform.toLowerCase() === "phone number";
+
+                    const safeHref = isPhone
+                      ? `tel:${link.url_or_number.replace(/\s+/g, "")}`
+                      : link.url_or_number;
+
+                    return (
+                      <li key={link.url_or_number + link.platform}>
+                        <a
+                          className="hover:text-foreground transition-colors"
+                          href={safeHref}
+                          target={isPhone ? undefined : "_blank"}
+                          rel={isPhone ? undefined : "noopener noreferrer"}
+                        >
+                          <span className="capitalize">{link.platform}</span>:{" "}
+                          {link.url_or_number}
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </AnimatedContainer>
             </div>
+
             <div className="flex flex-col items-center justify-between gap-2 border-t p-4 text-muted-foreground text-sm md:flex-row">
               <p>
                 &copy; {new Date().getFullYear()} Shallal, All rights reserved.
               </p>
-              <a className="hover:text-foreground" href="#">
-                License
-              </a>
             </div>
           </div>
         </div>
@@ -101,65 +99,9 @@ export function StickyFooter() {
   );
 }
 
-const socialLinks = [
-  { title: "Facebook", href: "#", icon: <FacebookIcon /> },
-  { title: "Instagram", href: "#", icon: <InstagramIcon /> },
-  { title: "Youtube", href: "#", icon: <YoutubeIcon /> },
-  { title: "LinkedIn", href: "#", icon: <LinkedinIcon /> },
-];
-
-const footerLinkGroups: FooterLinkGroup[] = [
-  {
-    label: "Product",
-    links: [
-      { title: "Payments", href: "#" },
-      { title: "Cards & Issuing", href: "#" },
-      { title: "Lending & Credit", href: "#" },
-      { title: "Wealth Management", href: "#" },
-      { title: "Insurance", href: "#" },
-      { title: "Crypto Wallets", href: "#" },
-      { title: "Treasury Management", href: "#" },
-      { title: "Merchant Services", href: "#" },
-      { title: "Point of Sale", href: "#" },
-      { title: "Embedded Finance", href: "#" },
-      { title: "Open Banking API", href: "#" },
-      { title: "SDKs & Integrations", href: "#" },
-      { title: "Pricing", href: "/pricing" },
-    ],
-  },
-  {
-    label: "Resources",
-    links: [
-      { title: "Blog", href: "#" },
-      { title: "Case Studies", href: "#" },
-      { title: "Documentation", href: "#" },
-      { title: "API Reference", href: "#" },
-      { title: "Developer Tools", href: "#" },
-      { title: "Whitepapers", href: "#" },
-      { title: "Reports & Research", href: "#" },
-      { title: "Events & Webinars", href: "#" },
-      { title: "E-books", href: "#" },
-      { title: "Community Forum", href: "#" },
-      { title: "Release Notes", href: "#" },
-      { title: "System Status", href: "#" },
-    ],
-  },
-  {
-    label: "Company",
-    links: [
-      { title: "About Us", href: "#" },
-      { title: "Leadership", href: "#" },
-      { title: "Careers", href: "#" },
-      { title: "Press", href: "#" },
-      { title: "Sustainability", href: "#" },
-      { title: "Diversity & Inclusion", href: "#" },
-      { title: "Investor Relations", href: "#" },
-      { title: "Partners", href: "#" },
-      { title: "Legal & Compliance", href: "#" },
-      { title: "Privacy Policy", href: "#" },
-      { title: "Cookie Policy", href: "#" },
-      { title: "Terms of Service", href: "#" },
-      { title: "AML & KYC Policy", href: "#" },
-    ],
-  },
+const quickLinks: FooterLink[] = [
+  { title: "Home", href: "#hero" },
+  { title: "Projects", href: "#projects" },
+  { title: "Services", href: "#services" },
+  { title: "Testimonials", href: "#testimonials" },
 ];

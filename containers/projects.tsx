@@ -8,42 +8,31 @@ import StaggeredProjectsGrid from "@/gsap-wrappers/StaggeredProjects";
 
 const PAGE_SIZE = 3;
 
-const projects = [
-  {
-    image: "/logo.png",
-    title: "Project 1",
-    description: "Description for Project 1",
-    year: 2023,
-    href: "/projects/1",
-  },
-  {
-    image: "/logo.png",
-    title: "Project 2",
-    description: "Description for Project 2",
-    year: 2023,
-    href: "/projects/2",
-  },
-  {
-    image: "/logo.png",
-    title: "Project 3",
-    description: "Description for Project 3",
-    year: 2023,
-    href: "/projects/3",
-  },
-  {
-    image: "/logo.png",
-    title: "Project 4",
-    description: "Description for Project 4",
-    year: 2024,
-    href: "/projects/4",
-  },
-];
+export type ProjectData = {
+  image?: string;
+  images?: string[];
+  title: string;
+  description: string;
+  year?: number | string;
+  country?: string;
+  href?: string;
+  links?: { title: string; url: string }[];
+  tags?: string[];
+  testimonials?: any[];
+};
 
-export default function Projects() {
+interface ProjectsProps {
+  initialProjects?: ProjectData[];
+}
+
+export default function Projects({ initialProjects = [] }: ProjectsProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  const visibleProjects = projects.slice(0, visibleCount);
-  const hasMore = visibleCount < projects.length;
+  // Fallback to empty array if undefined
+  const safeProjects = initialProjects || [];
+
+  const visibleProjects = safeProjects.slice(0, visibleCount);
+  const hasMore = visibleCount < safeProjects.length;
 
   return (
     <section
@@ -64,7 +53,7 @@ export default function Projects() {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
         >
           {visibleProjects.map((project) => (
-            <div key={project.href} data-project-card className="h-130">
+            <div key={project.href} data-project-card className="h-[480px]">
               <ProjectCard {...project} />
             </div>
           ))}

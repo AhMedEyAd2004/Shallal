@@ -126,4 +126,9 @@
   html {
     @apply font-sans;
   }
+  button,
+  [role="button"],
+  a[role="link"] {
+    @apply cursor-pointer;
+  }
 }

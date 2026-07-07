@@ -6,6 +6,7 @@ import gsap from "gsap";
 import MotionPathPlugin from "gsap/MotionPathPlugin";
 import Image from "next/image";
 import LogoLoop, { LogoItem } from "@/components/static/LogoLoop";
+import { FlagImage } from "@/components/custom/FlagImage";
 
 gsap.registerPlugin(MotionPathPlugin);
 
@@ -83,7 +84,11 @@ export default function PlatformsServed({
 
             tl.set(dot, { autoAlpha: 1, scale: 0 })
               .add("start1", `+=${delay1}`)
-              .to(dot, { scale: 1, duration: 0.2, ease: "power2.out" }, "start1")
+              .to(
+                dot,
+                { scale: 1, duration: 0.2, ease: "power2.out" },
+                "start1",
+              )
               .to(
                 dot,
                 {
@@ -98,12 +103,16 @@ export default function PlatformsServed({
                   duration: duration1,
                   ease: "power2.inOut",
                 },
-                "start1"
+                "start1",
               )
               .to(dot, { scale: 0, duration: 0.2, ease: "power2.in" }, ">-0.2")
-              
+
               .add("start2", `+=${delay2}`)
-              .to(dot, { scale: 1, duration: 0.2, ease: "power2.out" }, "start2")
+              .to(
+                dot,
+                { scale: 1, duration: 0.2, ease: "power2.out" },
+                "start2",
+              )
               .to(
                 dot,
                 {
@@ -118,7 +127,7 @@ export default function PlatformsServed({
                   duration: duration2,
                   ease: "power2.inOut",
                 },
-                "start2"
+                "start2",
               )
               .to(dot, { scale: 0, duration: 0.2, ease: "power2.in" }, ">-0.2");
 
@@ -258,13 +267,14 @@ export default function PlatformsServed({
                   fill
                   className="object-contain rounded-lg"
                 />
-                <div className="absolute bottom-0 -right-1 size-6 rounded-full border-2 overflow-hidden border-border bg-background">
-                  <Image
-                    src={company.countryImage}
-                    alt={company.countryName}
-                    fill
-                  />
-                </div>
+                <FlagImage
+                  countryCode={(() => {
+                    const parts = company.countryImage.split('/');
+                    return parts[parts.length - 1].split('.')[0].toUpperCase();
+                  })()}
+                  countryName={company.countryName}
+                  className="absolute bottom-0 -right-1"
+                />
               </div>
             );
           }}

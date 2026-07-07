@@ -1,5 +1,6 @@
-import Image from "next/image";
 import { CardStackCarousel } from "@/gsap-wrappers/animated-testimonials";
+import Link from "next/link";
+import { LinkIcon, UserRound } from "lucide-react";
 
 type Testimonial = {
   id: string;
@@ -7,38 +8,8 @@ type Testimonial = {
   name: string;
   role: string;
   img: string;
+  links?: { title: string; url: string }[];
 };
-
-const testimonials: Testimonial[] = [
-  {
-    id: "t1",
-    text: "Working with this team completely changed how fast we ship. The attention to detail is unreal.",
-    name: "Sara Ahmed",
-    role: "Product Lead, Nimbus",
-    img: "/logo.png",
-  },
-  {
-    id: "t2",
-    text: "Every interaction felt intentional. It's rare to see motion design used this precisely.",
-    name: "Omar Khaled",
-    role: "Founder, Driftline",
-    img: "/logo.png",
-  },
-  {
-    id: "t3",
-    text: "We asked for something different and got exactly that — a site that actually feels alive.",
-    name: "Leila Nasser",
-    role: "CMO, Faroui",
-    img: "/logo.png",
-  },
-  {
-    id: "t4",
-    text: "The best collaborator we've had. Fast, sharp, and obsessed with getting the small things right.",
-    name: "Yusuf Adel",
-    role: "CTO, Marisol",
-    img: "/logo.png",
-  },
-];
 
 function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
   return (
@@ -47,27 +18,44 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
         &ldquo;{testimonial.text}&rdquo;
       </p>
 
-      <div className="mt-8 flex items-center gap-4">
-        <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-full bg-muted">
-          <Image
-            src={testimonial.img}
-            alt={testimonial.name}
-            fill
-            sizes="48px"
-            className="object-cover"
-          />
-        </div>
+      <div className="mt-8 flex flex-col gap-3">
+        {testimonial.links && testimonial.links.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            <p className=" text-sm font-semibold">Links:</p>
+            <div className="flex gap-2">
+              {testimonial.links.map((link) => (
+                <Link
+                  key={link.url}
+                  href={link.url}
+                  className="text-sm flex underline hover:text-muted-foreground transition-colors"
+                >
+                  <LinkIcon className=" size-4" />
+                  {link.title}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 sm:h-12 sm:w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted border border-border text-muted-foreground">
+            <UserRound className="size-10 sm:size-12 stroke-[1.3] opacity-80 mt-3 " />
+          </div>
 
-        <div>
-          <p className="font-medium text-foreground">{testimonial.name}</p>
-          <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+          <div>
+            <p className="font-medium text-foreground">{testimonial.name}</p>
+            <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default function Testimonial() {
+export default function Testimonial({
+  testimonials = [],
+}: {
+  testimonials?: Testimonial[];
+}) {
   return (
     <section id="blogs" className="py-24 bg-background text-foreground">
       <h3 className="text-center font-stack text-2xl sm:text-3xl md:text-4xl font-semibold">
@@ -79,11 +67,17 @@ export default function Testimonial() {
       </p>
 
       <div className="mt-16 mx-2 sm:mx-4">
-        <CardStackCarousel>
-          {testimonials.map((testimonial) => (
-            <TestimonialCard key={testimonial.id} testimonial={testimonial} />
-          ))}
-        </CardStackCarousel>
+        {testimonials.length === 0 ? (
+          <div className=" min-h-[40dvh] flex items-center justify-center text-center text-muted-foreground">
+            <p>No testimonials yet.</p>
+          </div>
+        ) : (
+          <CardStackCarousel>
+            {testimonials.map((testimonial) => (
+              <TestimonialCard key={testimonial.id} testimonial={testimonial} />
+            ))}
+          </CardStackCarousel>
+        )}
       </div>
     </section>
   );

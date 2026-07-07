@@ -1,6 +1,6 @@
 "use client";
 
-import StaggeredMenu from "@/components/custom/staggeredMenu";
+import { UserProfileDropdown } from "@/components/custom/UserProfileDropdown";
 import { FacebookIcon } from "@/components/facebook-icon";
 import { LinkedinIcon } from "@/components/linkedin-icon";
 import { ThemeToggle } from "@/components/static/theme-toggle";
@@ -10,10 +10,48 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MenuIcon } from "lucide-react";
+import { Loader2, LogOut, Mail, MenuIcon, UserPlus } from "lucide-react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState, useEffect, useTransition } from "react";
+
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+
+import {
+  signOutAction,
+  inviteUserByEmailAction,
+} from "@/app/dashboard/actions";
+
+type FooterAccountControlsProps = {
+  email: string;
+  createdAt?: string;
+};
+
+// Import your browser client builder
+import type { User } from "@supabase/supabase-js";
+import { createClient } from "@/lib/client";
+import { MobileMenu } from "@/components/custom/MobileMenu";
+
+// Code-split: GSAP timelines + portal panel markup only load when this
+// chunk is actually rendered (i.e. once we know we're on a small screen).
+// ssr: false means the server always renders null here. Combined with
+// useMediaQuery's { initializeWithValue: false } below, the client's
+// *first* render also evaluates isSmallerThanLg as false — matching the
+// server exactly. The real value is only computed after mount, so there's
+// no server/client disagreement to trigger a hydration mismatch.
+const StaggeredMenu = dynamic(
+  () => import("@/components/custom/staggeredMenu"),
+  { ssr: false },
+);
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -26,7 +64,27 @@ const navLinks = [
 
 export default function Header() {
   const headerRef = useRef<HTMLElement>(null);
-  const isSmallerThanLg = useMediaQuery("(max-width: 1024px)");
+  const isSmallerThanLg = useMediaQuery("(max-width: 1024px)", {
+    initializeWithValue: false,
+  });
+
+  // State to hold the logged-in user data
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    // 1. Fetch current active session user on mount
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+    getUser();
+  }, []);
 
   useGSAP(
     () => {
@@ -89,7 +147,7 @@ export default function Header() {
         </h1>
       </Link>
 
-      <nav className="hidden  lg:flex items-center justify-center gap-8 text-foreground text-sm font-normal">
+      <nav className="hidden lg:flex items-center justify-center gap-8 text-foreground text-sm font-normal">
         {navLinks.map((link) => (
           <a
             key={link.label}
@@ -107,23 +165,41 @@ export default function Header() {
         {isSmallerThanLg && (
           <StaggeredMenu
             items={[
-              {
-                label: "About",
-                link: "/home#about",
-              },
-              {
-                label: "Projects",
-                link: "/home#projects",
-              },
-              {
-                label: "Blogs",
-                link: "/home#blogs",
-              },
-              {
-                label: "Contact",
-                link: "/contact-us",
-              },
+              { label: "About", link: "/home#about" },
+              { label: "Projects", link: "/home#projects" },
+              { label: "Blogs", link: "/home#blogs" },
+              { label: "Contact", link: "/contact-us" },
+              ...(user
+                ? [
+                    {
+                      label: "Manage Data",
+                      link: "/dashboard/manage-data",
+                    },
+                    {
+                      label: "Create PDF",
+                      link: "/dashboard/manage-data",
+                    },
+                  ]
+                : []),
             ]}
+            footer={
+              !user ? (
+                /* LOGGED OUT STATE: Button renders directly as a Link component */
+                <Button
+                  asChild
+                  className="flex bg-background hover:bg-background/90 text-foreground px-5 py-2 rounded-full text-sm font-medium"
+                >
+                  <Link href="/log-in">
+                    <HoverText totalDuration={0.4}>Log in</HoverText>
+                  </Link>
+                </Button>
+              ) : (
+                <FooterAccountControls
+                  email={user.email ?? ""}
+                  createdAt={user.created_at}
+                />
+              )
+            }
             socialItems={[
               {
                 label: "facebook",
@@ -147,15 +223,81 @@ export default function Header() {
           </StaggeredMenu>
         )}
 
-        <Button
-          asChild
-          className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-full text-sm font-medium"
-        >
-          <Link href="/log-in">
-            <HoverText totalDuration={0.4}>Sign up</HoverText>
-          </Link>
-        </Button>
+        {/* Dynamic render check: Hidden during loading to prevent flash */}
+        {loading ? (
+          <div className="w-20 h-8 hidden md:block animate-pulse" />
+        ) : !user ? (
+          <Button
+            asChild
+            className="hidden md:flex bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 rounded-full text-sm font-medium"
+          >
+            <Link href="/log-in">
+              <HoverText totalDuration={0.4}>Log in</HoverText>
+            </Link>
+          </Button>
+        ) : (
+          <div className="hidden md:flex">
+            <MobileMenu email={user.email ?? ""} createdAt={user.created_at} />
+          </div>
+        )}
       </div>
     </header>
+  );
+}
+
+function FooterAccountControls({
+  email,
+  createdAt,
+}: FooterAccountControlsProps) {
+  const [isPending, startTransition] = useTransition();
+
+  const initials = email.split("@")[0].slice(0, 2).toUpperCase();
+
+  const handleSignOut = () => {
+    startTransition(() => {
+      signOutAction();
+    });
+  };
+
+  return (
+    <div className="w-full rounded-xl border border-border bg-gray-500  p-5 shadow-sm">
+      {/* 1. Static User Identity Header Card */}
+      <div className="flex items-center gap-3 pb-4 border-b border-border">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-400 text-black! text-sm font-bold">
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold truncate ">{email}</p>
+          {createdAt && (
+            <p className="text-xs  font-normal">
+              Joined{" "}
+              {new Date(createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                year: "numeric",
+              })}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* 2. Horizontal Command Button Row */}
+      <div className="flex items-center gap-3 pt-4">
+        {/* Destructive Red Sign Out Button */}
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={handleSignOut}
+          disabled={isPending}
+          className="flex-1 gap-2 text-white bg-red-700! hover:bg-red-600! rounded-lg text-sm font-medium cursor-pointer"
+        >
+          {isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
+          {isPending ? "Signing out" : "Sign Out"}
+        </Button>
+      </div>
+    </div>
   );
 }

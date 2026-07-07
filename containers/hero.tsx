@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import AnimatedTitle from "@/gsap-wrappers/animated-title";
 import ScrollRotatingCircularWrapper from "@/gsap-wrappers/ScrollRotatingCircularWrapper";
-import { ArrowRight, CalendarClockIcon } from "lucide-react";
+import { ArrowRight, CalendarClockIcon, PhoneIcon } from "lucide-react";
 import Link from "next/link";
 
 const INNER_LOOP_ICONS = [
@@ -41,7 +41,11 @@ const OUTER_LOOP_ICONS = [
   <TypescriptIcon key="outer-ts" className="text-4xl  lg:text-6xl " />,
 ];
 
-export default function Hero() {
+export default function Hero({
+  cta,
+}: {
+  cta: { phoneNumber: string; whatsapp: string };
+}) {
   return (
     <section className="h-svh w-dvw overflow-hidden">
       <div className="size-full relative flex justify-center items-center">
@@ -81,8 +85,10 @@ export default function Hero() {
           </p>
           <div className="mt-2 flex md:w-auto max-w-80 flex-col sm:flex-row gap-3 w-full sm:w-auto justify-center px-2">
             <Button className=" animate-in fade-in slide-in-from-bottom-50 duration-1000 delay-1000 ease-out fill-mode-both w-full sm:w-auto whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20 dark:shadow-indigo-500/10 transition-all active:scale-98 will-change-transform cursor-pointer flex items-center justify-center gap-2">
-              <p>Book a discovery call</p>
-              <CalendarClockIcon className="size-4 md:size-5" />
+              <Link href={`tel:${cta.phoneNumber}`}>
+                <p>Give us a call</p>
+              </Link>
+              <PhoneIcon className="size-4 md:size-5" />
             </Button>
 
             <Button
@@ -90,10 +96,10 @@ export default function Hero() {
               className=" animate-in fade-in slide-in-from-bottom-50 duration-1000 delay-1000 ease-out fill-mode-both w-full sm:w-auto whitespace-nowrap bg-white hover:bg-slate-50 border border-slate-200 text-slate-800 dark:bg-slate-700 dark:hover:bg-slate-850 dark:border-slate-800 dark:text-slate-200 font-bold text-sm md:text-[15px] py-3 px-6 md:p-5 rounded-full shadow-sm transition-all active:scale-98 will-change-transform cursor-pointer "
             >
               <Link
-                href="/contact-us"
+                href={cta.whatsapp}
                 className="flex items-center justify-center gap-1"
               >
-                <p>Let&apos;s talk</p>
+                <p>Message us</p>
                 <ArrowRight className="size-4 md:size-5" />
               </Link>
             </Button>
