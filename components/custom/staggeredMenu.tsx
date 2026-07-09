@@ -7,6 +7,7 @@ import { useGSAP } from "@gsap/react";
 import Link from "next/link";
 import HoverText from "@/gsap-wrappers/Button-animation-onHover";
 import { Button } from "../ui/button";
+import { RawSocialLink, SOCIAL_PLATFORMS, SocialLinks } from "../social-links";
 
 gsap.registerPlugin(useGSAP);
 
@@ -17,16 +18,15 @@ export interface StaggeredMenuItem {
   className?: string;
 }
 
-export interface StaggeredMenuSocialItem {
-  label: string;
-  link: string;
-  icon?: React.ReactNode;
-  className?: string;
-}
+// export interface StaggeredMenuSocialItem {
+//   id: string;
+//   platform: typeof SOCIAL_PLATFORMS;
+//   url_or_number: string;
+// }
 
 export interface StaggeredMenuProps {
   items: StaggeredMenuItem[];
-  socialItems?: StaggeredMenuSocialItem[];
+  socialItems?: RawSocialLink[];
   displaySocials?: boolean;
   displayItemNumbering?: boolean;
   position?: "left" | "right";
@@ -471,26 +471,14 @@ export default function StaggeredMenu({
                       >
                         Socials
                       </h3>
-                      <ul className="list-none m-0 p-0 flex flex-row items-center gap-4 flex-wrap">
-                        {socialItems.map((s, i) => (
-                          <li key={s.label + i}>
-                            <Link
-                              href={s.link}
-                              onClick={closeMenu}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`sm-socials-link cursor-pointer inline-flex items-center gap-2 text-[1.2rem] font-medium text-[#111] no-underline ${s.className ?? ""}`}
-                            >
-                              {s.icon && (
-                                <span className="sm-socials-icon inline-flex w-[1.1em] h-[1.1em] shrink-0">
-                                  {s.icon}
-                                </span>
-                              )}
-                              {s.label}
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                      {
+                        <ul className="list-none m-0 p-0 py-2 flex bg-black/90 rounded-xl flex-row items-center gap-4 flex-wrap">
+                          <SocialLinks
+                            className="[&_*]:shadow-none! "
+                            socialLinks={socialItems}
+                          />
+                        </ul>
+                      }
                     </>
                   )}
                 </div>

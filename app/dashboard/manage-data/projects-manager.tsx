@@ -1,26 +1,43 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Search, Plus, Eye, Pen, Trash } from "lucide-react";
-import { X, ImageIcon } from "lucide-react";
+import { CountrySelect } from "@/components/custom/CountrySelect";
+import { ImageCarousel } from "@/components/custom/ImageCarousel";
 import ProjectCard from "@/components/custom/Project-card";
 import { ResponsiveDrawer } from "@/components/custom/responsiveDrawer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useUploadThing } from "@/lib/uploadthing";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  ImageIcon,
+  Pen,
+  Plus,
+  Search,
+  Trash,
+  X,
+} from "lucide-react";
+import { useState, useTransition } from "react";
+import { useDropzone } from "react-dropzone";
+import { toast } from "sonner";
 import {
   addProjectAction,
   deleteProjectAction,
-  updateProjectAction,
-  addTestimonialAction,
   deleteTestimonialAction,
+  deleteUploadThingFilesAction,
+  updateProjectAction,
 } from "./actions";
-import { useUploadThing } from "@/lib/uploadthing";
-import { useDropzone } from "react-dropzone";
-import { deleteUploadThingFilesAction } from "./actions";
-import { ImageCarousel } from "@/components/custom/ImageCarousel";
-import { CountrySelect } from "@/components/custom/CountrySelect";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { LINK_CONFIG } from "../../../components/project-links";
 
 function TestimonialsList({
   testimonials,
@@ -110,7 +127,7 @@ function ImageManager({ initialImages = [] }: { initialImages?: string[] }) {
       setUploadProgress(0);
     },
     onUploadError: (error) => {
-      alert(`Upload error: ${error.message}`);
+      toast.error(`Upload failed: ${error.message}`);
       setUploadProgress(0);
     },
     onUploadProgress: (p) => {
@@ -276,8 +293,10 @@ function LinksManager({ initialLinks = [] }: { initialLinks?: any }) {
     }));
   }
 
-  const [links, setLinks] = useState<{ title: string; url: string }[]>(
-    initialList.length > 0 ? initialList : [{ title: "", url: "" }],
+  const [links, setLinks] = useState(
+    initialList.length > 0
+      ? initialList
+      : [{ title: undefined as string | undefined, url: "" }],
   );
 
   const updateLink = (idx: number, field: "title" | "url", val: string) => {
@@ -291,7 +310,7 @@ function LinksManager({ initialLinks = [] }: { initialLinks?: any }) {
     setLinks(links.filter((_, i) => i !== idx));
 
   // Build the final JSON object for the hidden input
-  const validLinks = links.filter((l) => l.title.trim() && l.url.trim());
+  const validLinks = links.filter((l) => l.title?.trim() && l.url.trim());
 
   return (
     <div className="space-y-3">
@@ -301,12 +320,22 @@ function LinksManager({ initialLinks = [] }: { initialLinks?: any }) {
       <div className="space-y-2">
         {links.map((link, idx) => (
           <div key={idx} className="flex gap-2 items-center">
-            <Input
-              placeholder="Title (e.g. Github)"
-              value={link.title}
-              onChange={(e) => updateLink(idx, "title", e.target.value)}
-              className="w-1/3"
-            />
+            <Select
+              value={link.title || undefined}
+              onValueChange={(value) => updateLink(idx, "title", value)}
+            >
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Select platform" />
+              </SelectTrigger>
+
+              <SelectContent className="z-9999">
+                {Object.entries(LINK_CONFIG).map(([key, value]) => (
+                  <SelectItem key={key} value={key}>
+                    {value.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               placeholder="URL (e.g. https://...)"
               value={link.url}
@@ -379,24 +408,9 @@ const projectFormFields = (p?: any) => (
 export function ProjectsManager({ projects }: { projects: any[] }) {
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
-  const [errorMsg, setErrorMsg] = useState("");
 
-  // Clear toast after 4s
-  const [successMsg, setSuccessMsg] = useState("");
-
-  useEffect(() => {
-    if (errorMsg) {
-      const t = setTimeout(() => setErrorMsg(""), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [errorMsg]);
-
-  useEffect(() => {
-    if (successMsg) {
-      const t = setTimeout(() => setSuccessMsg(""), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [successMsg]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 6;
 
   const filteredProjects = projects.filter((p) => {
     if (!search) return true;
@@ -408,17 +422,29 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
     return matchTitle || matchTags;
   });
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProjects.length / ITEMS_PER_PAGE),
+  );
+  // Clamp in case items were deleted and the page no longer exists
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedProjects = filteredProjects.slice(
+    (safePage - 1) * ITEMS_PER_PAGE,
+    safePage * ITEMS_PER_PAGE,
+  );
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+  };
+
   const handleAction = async (
     actionFn: () => Promise<any>,
     successText?: string,
   ) => {
-    setErrorMsg("");
-    setSuccessMsg("");
     const result = await actionFn();
     if (result?.error) {
-      setErrorMsg(result.error);
+      toast.error(result.error);
     } else if (result?.success) {
-      if (successText) setSuccessMsg(successText);
+      if (successText) toast.success(successText);
       // Close vaul drawer by simulating Escape key press
       document.dispatchEvent(
         new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
@@ -427,29 +453,7 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
   };
 
   return (
-    <div className="space-y-6 relative">
-      {/* Toast Notification (Error) */}
-      {errorMsg && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-destructive text-destructive-foreground px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-          <X
-            className="h-4 w-4 cursor-pointer"
-            onClick={() => setErrorMsg("")}
-          />
-          <span className="text-sm font-medium">{errorMsg}</span>
-        </div>
-      )}
-
-      {/* Toast Notification (Success) */}
-      {successMsg && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-green-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
-          <X
-            className="h-4 w-4 cursor-pointer"
-            onClick={() => setSuccessMsg("")}
-          />
-          <span className="text-sm font-medium">{successMsg}</span>
-        </div>
-      )}
-
+    <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold font-stack">Projects</h2>
 
@@ -460,7 +464,10 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
               placeholder="Search by title or tag..."
               className="pl-9"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setCurrentPage(1);
+              }}
             />
           </div>
 
@@ -495,7 +502,7 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProjects.map((p) => {
+        {paginatedProjects.map((p) => {
           const mainImage =
             Array.isArray(p.images) && p.images.length > 0
               ? p.images[0]
@@ -658,6 +665,46 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
           );
         })}
       </div>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => goToPage(safePage - 1)}
+            disabled={safePage === 1}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                type="button"
+                variant={page === safePage ? "default" : "outline"}
+                size="icon"
+                className="h-8 w-8 text-xs"
+                onClick={() => goToPage(page)}
+              >
+                {page}
+              </Button>
+            ))}
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => goToPage(safePage + 1)}
+            disabled={safePage === totalPages}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

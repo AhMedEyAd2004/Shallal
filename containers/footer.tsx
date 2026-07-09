@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { SocialLinks } from "@/components/social-links";
 import AnimatedContainer from "@/gsap-wrappers/footer-animation";
 import Image from "next/image";
 
@@ -60,30 +60,7 @@ export async function StickyFooter({
 
               <AnimatedContainer className="w-full" delay={0.2}>
                 <h3 className="text-sm uppercase">Get in Touch</h3>
-                <ul className="mt-4 space-y-2 text-muted-foreground text-sm">
-                  {socialLinks.map((link) => {
-                    const isPhone =
-                      link.platform.toLowerCase() === "phone number";
-
-                    const safeHref = isPhone
-                      ? `tel:${link.url_or_number.replace(/\s+/g, "")}`
-                      : link.url_or_number;
-
-                    return (
-                      <li key={link.url_or_number + link.platform}>
-                        <a
-                          className="hover:text-foreground transition-colors"
-                          href={safeHref}
-                          target={isPhone ? undefined : "_blank"}
-                          rel={isPhone ? undefined : "noopener noreferrer"}
-                        >
-                          <span className="capitalize">{link.platform}</span>:{" "}
-                          {link.url_or_number}
-                        </a>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <SocialLinks socialLinks={socialLinks} className="mt-4" />
               </AnimatedContainer>
             </div>
 

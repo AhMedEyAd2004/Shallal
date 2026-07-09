@@ -44,7 +44,7 @@ export default async function DashboardLayout({
             asChild
             className="text-muted-foreground hover:text-foreground"
           >
-            <Link href="/dashboard/home">Home</Link>
+            <Link href="/home">Home</Link>
           </Button>
           <Button
             variant="ghost"

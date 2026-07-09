@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useOptimistic, useRef } from "react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -57,7 +58,7 @@ function SingleImageManager({
       setUploadProgress(0);
     },
     onUploadError: (error) => {
-      alert(`Upload error: ${error.message}`);
+      toast.error(`Upload failed: ${error.message}`);
       setUploadProgress(0);
     },
     onUploadProgress: (p) => {
@@ -176,7 +177,7 @@ export function CompaniesManager({ companies }: { companies: any[] }) {
         return state.filter((c: any) => c.id !== newCompany.id);
       }
       return [newCompany, ...state];
-    }
+    },
   );
 
   return (
@@ -289,9 +290,7 @@ export function CompaniesManager({ companies }: { companies: any[] }) {
               </Popover>
             </div>
 
-            <Button className="w-full">
-              Save Company
-            </Button>
+            <Button className="w-full">Save Company</Button>
           </form>
         </div>
 
@@ -336,8 +335,9 @@ export function CompaniesManager({ companies }: { companies: any[] }) {
                 className="absolute top-2 right-2"
                 onClick={() => {
                   startTransition(() => {
-                  addOptimisticCompany({ id: c.id, action: "delete" });
-                    deleteCompanyAction(c.id)} );
+                    addOptimisticCompany({ id: c.id, action: "delete" });
+                    deleteCompanyAction(c.id);
+                  });
                 }}
               >
                 Delete

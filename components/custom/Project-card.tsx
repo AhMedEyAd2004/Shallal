@@ -9,6 +9,7 @@ import { useState } from "react";
 import { ImageCarousel } from "./ImageCarousel";
 import { getCountryLabel } from "./CountrySelect";
 import { FlagImage } from "./FlagImage";
+import { ProjectLinks } from "@/components/project-links";
 
 interface ProjectCardProps {
   image?: string;
@@ -102,25 +103,11 @@ export default function ProjectCard({
 
         <div className="space-y-2">
           <p className="text-sm font-medium text-foreground">Links</p>
-          <div className="flex gap-4">
-            {rest.links && rest.links.length > 0 ? (
-              rest.links.map(
-                (linkItem: { url: string; title: string }, index:number) => (
-                  <Link
-                    key={index}
-                    href={linkItem.url}
-                    target="_blank"
-                    className="text-sm font-medium hover:underline capitalize flex items-center gap-1 text-primary"
-                  >
-                    <LinkIcon className="size-4" />
-                    {linkItem.title}
-                  </Link>
-                ),
-              )
-            ) : (
-              <span className="text-sm text-muted-foreground">None</span>
-            )}
-          </div>
+          {rest.links && rest.links.length > 0 ? (
+            <ProjectLinks links={rest.links} />
+          ) : (
+            <span className="text-sm text-muted-foreground">None</span>
+          )}
         </div>
       </div>
 

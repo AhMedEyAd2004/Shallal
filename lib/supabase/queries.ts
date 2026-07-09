@@ -13,21 +13,26 @@ const supabase = createClient(
 /**
  * Fetch social links in a single query.
  */
-export async function getSocialLinks() {
-  // Assuming you have an initialized supabase client in this file
-  const { data, error } = await supabase
-    .from("social_links")
-    .select("platform,url_or_number"); // Replace with your exact column names
+export const getSocialLinks = unstable_cache(
+  async () => {
+    const { data, error } = await supabase
+      .from("social_links")
+      .select("id,platform,url_or_number")
+      .order("created_at", { ascending: true });
 
-  if (error) {
-    console.error("Error fetching social links:", error);
-    return null;
-  }
-  return data;
-}
+    if (error) {
+      console.error("Error fetching social links:", error);
+      return [];
+    }
+    return data;
+  },
+  ["social-links"],
+  { tags: ["social-links"], revalidate: 86400 },
+);
 
 /**
  * Fetch projects and their approved testimonials in a single query.
+ * Newest projects first.
  */
 export const getProjects = unstable_cache(
   async () => {
@@ -41,7 +46,7 @@ export const getProjects = unstable_cache(
       `,
       )
       .eq("testimonials.status", "approved")
-      .order("order_index", { ascending: true });
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching projects:", error);
@@ -62,7 +67,7 @@ export const getApprovedTestimonials = unstable_cache(
       .from("testimonials")
       .select("*, projects(links)")
       .eq("status", "approved")
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: true });
 
     if (error) {
       console.error("Error fetching testimonials:", error);
@@ -82,7 +87,7 @@ export const getServiceProvided = unstable_cache(
     const { data: services, error } = await supabase
       .from("service_provided")
       .select("*")
-      .order("order_index", { ascending: true });
+      .order("created_at", { ascending: true });
 
     if (error) {
       console.error("Error fetching service_provided:", error);

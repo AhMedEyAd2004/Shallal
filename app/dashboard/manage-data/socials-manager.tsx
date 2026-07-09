@@ -9,12 +9,21 @@ import {
   deleteSocialLinkAction,
   updateSocialLinkAction,
 } from "./actions";
+import { SOCIAL_PLATFORMS } from "@/components/social-links";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const RESERVED_PLATFORMS = ["whatsapp", "phone number"];
+const RESERVED_PLATFORMS = ["hero-btn-whatsapp", "hero-btn-call"];
 
 export function SocialsManager({ socialLinks }: { socialLinks: any[] }) {
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const [platform, setPlatform] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -68,8 +77,11 @@ export function SocialsManager({ socialLinks }: { socialLinks: any[] }) {
 
           <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
             <span className="font-semibold text-foreground">Note:</span>{" "}
-            <span className="font-bold italic">&quot;whatsapp&quot;</span> and{" "}
-            <span className="font-bold italic"> &quot;phone number&quot;</span>{" "}
+            <span className="font-bold italic">
+              &quot;hero-btn-whatsapp&quot;
+            </span>{" "}
+            and{" "}
+            <span className="font-bold italic">&quot;hero-btn-call&quot;</span>{" "}
             are reserved platform names used elsewhere on the site. They
             can&apos;t be deleted, but you can edit their value anytime.
           </p>
@@ -88,8 +100,26 @@ export function SocialsManager({ socialLinks }: { socialLinks: any[] }) {
             className="space-y-4"
           >
             <div className="space-y-2">
-              <Label>Platform Name</Label>
-              <Input name="platform" required placeholder="e.g. facebook" />
+              <Label>Platform</Label>
+
+              <Select value={platform} onValueChange={setPlatform} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a platform" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {SOCIAL_PLATFORMS.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item
+                        .replace(/_/g, " ")
+                        .replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Hidden input so the server action receives `platform` */}
+              <input type="hidden" name="platform" value={platform} />
             </div>
             <div className="space-y-2">
               <Label>URL or Phone</Label>
@@ -125,7 +155,7 @@ export function SocialsManager({ socialLinks }: { socialLinks: any[] }) {
                   <p className="font-semibold capitalize text-base flex items-center gap-2">
                     {s.platform}
                     {isReserved && (
-                      <span className="text-[10px] font-normal uppercase tracking-wide text-muted-foreground border border-border/50 rounded-full px-2 py-0.5">
+                      <span className="text-[10px] font-bold bg-orange-300 text-orange-800 uppercase tracking-wide border border-border/50 rounded-full px-2 py-0.5">
                         Reserved
                       </span>
                     )}

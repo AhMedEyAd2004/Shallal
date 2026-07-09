@@ -23,7 +23,10 @@ export async function inviteUserByEmailAction(email: string) {
   );
 
   const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/dashboard/set-password`,
+    redirectTo: `${process.env.NEXT_PUBLIC_WEBSITE_URL}/set-password`,
+    data: {
+      needs_Password: true,
+    },
   });
 
   if (error) {

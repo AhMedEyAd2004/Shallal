@@ -1,8 +1,5 @@
 "use client";
 
-import { UserProfileDropdown } from "@/components/custom/UserProfileDropdown";
-import { FacebookIcon } from "@/components/facebook-icon";
-import { LinkedinIcon } from "@/components/linkedin-icon";
 import { ThemeToggle } from "@/components/static/theme-toggle";
 import { Button } from "@/components/ui/button";
 import HoverText from "@/gsap-wrappers/Button-animation-onHover";
@@ -10,26 +7,13 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Loader2, LogOut, Mail, MenuIcon, UserPlus } from "lucide-react";
+import { Loader2, LogOut, MenuIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
-import { useRef, useState, useEffect, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-
-import {
-  signOutAction,
-  inviteUserByEmailAction,
-} from "@/app/dashboard/actions";
+import { signOutAction } from "@/app/dashboard/actions";
 
 type FooterAccountControlsProps = {
   email: string;
@@ -37,9 +21,10 @@ type FooterAccountControlsProps = {
 };
 
 // Import your browser client builder
-import type { User } from "@supabase/supabase-js";
-import { createClient } from "@/lib/client";
 import { MobileMenu } from "@/components/custom/MobileMenu";
+import { SOCIAL_PLATFORMS } from "@/components/social-links";
+import { createClient } from "@/lib/client";
+import type { User } from "@supabase/supabase-js";
 
 // Code-split: GSAP timelines + portal panel markup only load when this
 // chunk is actually rendered (i.e. once we know we're on a small screen).
@@ -70,20 +55,30 @@ export default function Header() {
 
   // State to hold the logged-in user data
   const [user, setUser] = useState<User | null>(null);
+  const [socialLinks, setSocialLinks] = useState<
+    { id: string; platform: typeof SOCIAL_PLATFORMS; url_or_number: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
 
-    // 1. Fetch current active session user on mount
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const init = async () => {
+      const [
+        {
+          data: { user },
+        },
+        { data: socialLinksData },
+      ] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.from("social_links").select("id, platform, url_or_number"),
+      ]);
       setUser(user);
+      setSocialLinks(socialLinksData ?? []);
       setLoading(false);
     };
-    getUser();
+
+    init();
   }, []);
 
   useGSAP(
@@ -200,18 +195,7 @@ export default function Header() {
                 />
               )
             }
-            socialItems={[
-              {
-                label: "facebook",
-                link: "https://facebook.com",
-                icon: <FacebookIcon />,
-              },
-              {
-                label: "LinkedIn",
-                link: "https://linkedin.com",
-                icon: <LinkedinIcon />,
-              },
-            ]}
+            socialItems={socialLinks}
           >
             <Button
               variant="outline"
@@ -236,7 +220,7 @@ export default function Header() {
             </Link>
           </Button>
         ) : (
-          <div className="hidden md:flex">
+          <div className="hidden lg:flex">
             <MobileMenu email={user.email ?? ""} createdAt={user.created_at} />
           </div>
         )}

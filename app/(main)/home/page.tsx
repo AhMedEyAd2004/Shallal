@@ -33,7 +33,6 @@ export function normalizeLinksInput(raw: unknown): ProjectLink[] {
         typeof l.url === "string",
     );
   }
-  // Handle legacy/incoming object shape: { github: "url", ... }
   if (raw && typeof raw === "object") {
     return Object.entries(raw as Record<string, unknown>)
       .filter(

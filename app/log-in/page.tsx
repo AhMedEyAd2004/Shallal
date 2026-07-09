@@ -1,16 +1,16 @@
 "use client";
 
-import { login } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/client";
-import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2, Router } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useActionState, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { login } from "./actions";
 
 export default function Login() {
   const searchParams = useSearchParams();
@@ -22,6 +22,18 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
+
+  const router = useRouter();
+
+  // Show server-side feedback as toasts
+  useEffect(() => {
+    if (message) toast.success(message);
+  }, [message]);
+
+  useEffect(() => {
+    if (state.error) toast.error(state.error);
+    else router.push("/dashboard");
+  }, [state.error]);
 
   // Client-side validation
   useEffect(() => {
@@ -72,22 +84,6 @@ export default function Login() {
             Sign in to your account to continue
           </p>
         </div>
-
-        {/* Success message from signup */}
-        {message && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-400 animate-in fade-in slide-in-from-top-2 duration-500">
-            <CheckCircle2 className="size-4 shrink-0" />
-            <span>{message}</span>
-          </div>
-        )}
-
-        {/* Server error message */}
-        {state.error && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive animate-in fade-in slide-in-from-top-2 duration-500">
-            <AlertCircle className="size-4 shrink-0" />
-            <span>{state.error}</span>
-          </div>
-        )}
 
         <Card className="mt-6 p-8 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-150 ease-out fill-mode-both">
           <form action={formAction} className="space-y-5" noValidate>
