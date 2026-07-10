@@ -50,16 +50,16 @@ export default function PdfCreatorDashboard() {
   }
 
   return (
-    <div className="p-6 max-w-screen-xl mx-auto text-foreground min-h-screen flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
+    <div className="p-4 sm:p-6 max-w-screen-xl mx-auto text-foreground min-h-screen flex flex-col gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h1 className="text-xl sm:text-2xl font-bold truncate">
           {view === "existing"
             ? "PDF Documents"
             : editingId
               ? "Edit PDF"
               : "Create New PDF"}
         </h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {view === "document" && (
             <>
               {documentCompany && (
@@ -149,7 +149,7 @@ export default function PdfCreatorDashboard() {
       </div>
 
       {view === "existing" ? (
-        <div className="bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-sm">
+        <div className="bg-card text-card-foreground border border-border rounded-2xl p-4 sm:p-6 shadow-sm">
           <ExistingPdfsPanel
             onEdit={(doc) => {
               setDocumentData({
@@ -168,7 +168,7 @@ export default function PdfCreatorDashboard() {
       ) : (
         <div className={`flex flex-col lg:flex-row gap-5 ${PANEL_HEIGHT}`}>
           {/* Form panel — dominant, ~62% on large screens */}
-          <div className="w-full lg:flex-[3] shrink-0 bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-sm overflow-y-auto flex flex-col">
+          <div className="w-full flex-1 min-h-0 lg:flex-[3] lg:shrink-0 bg-card text-card-foreground border border-border rounded-2xl p-4 sm:p-6 shadow-sm overflow-y-auto flex flex-col">
             <h2 className="text-base font-semibold mb-5">Document Details</h2>
             <DocumentFormPanel
               initialData={documentData}
@@ -177,7 +177,7 @@ export default function PdfCreatorDashboard() {
           </div>
 
           {/* PDF viewer — narrower, ~38%, with its own download action */}
-          <div className="w-full lg:flex-[2] rounded-2xl overflow-hidden border border-border shadow-sm">
+          <div className="w-full flex-1 min-h-0 lg:flex-[2] rounded-2xl overflow-hidden border border-border shadow-sm">
             <PdfPreview
               company={activeCompany}
               data={documentData}
