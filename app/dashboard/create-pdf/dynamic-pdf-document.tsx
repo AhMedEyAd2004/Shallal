@@ -15,12 +15,6 @@ function isRTLText(text: string) {
   return RTL_CHAR_PATTERN.test(text);
 }
 
-const BULLET_CHARS = ["•", "◦", "▪"];
-
-function bulletFor(indentLevel: number) {
-  return BULLET_CHARS[Math.min(indentLevel, BULLET_CHARS.length - 1)];
-}
-
 const ALIGN_STYLES: Record<string, any> = {
   left: pdfStyles.alignLeft,
   center: pdfStyles.alignCenter,
@@ -39,17 +33,15 @@ interface ParsedParagraph {
   alignment?: string;
   direction?: "rtl" | null;
   headerLevel?: number | null;
-  listType?: "bullet" | "ordered" | null;
-  indentLevel?: number;
   isBlankLine?: boolean;
 }
 
 /**
  * Converts a Quill Delta's `ops` array into a flat list of paragraph
- * objects. Block-level attributes (align, header, list, indent,
- * direction) live on the newline op that *ends* a line in Quill's
- * format, so inline runs are accumulated until a "\n" is hit, then
- * flushed as one paragraph using that newline op's attributes.
+ * objects. Block-level attributes (align, header, direction) live on
+ * the newline op that *ends* a line in Quill's format, so inline runs
+ * are accumulated until a "\n" is hit, then flushed as one paragraph
+ * using that newline op's attributes.
  *
  * Hoisted out of the component (and out of the per-block render loop
  * it used to live in) so it's a plain pure function instead of being
@@ -76,8 +68,6 @@ function deltaOpsToParagraphs(ops: any[]): ParsedParagraph[] {
         | "rtl"
         | null,
       headerLevel: op.attributes?.header || null,
-      listType: (op.attributes?.list as "bullet" | "ordered") || null,
-      indentLevel: op.attributes?.indent || 0,
     };
 
     parts.forEach((part: any, i: number) => {
@@ -118,12 +108,16 @@ function deltaOpsToParagraphs(ops: any[]): ParsedParagraph[] {
 }
 
 /**
- * Maps a Quill text-align value to flexbox justifyContent for an RTL
- * row-reverse container.  Used instead of textAlign when we render RTL
- * paragraphs as a flex View of individual <Text> elements to sidestep
- * react-pdf's broken bidi style-assignment on nested <Text> children.
+ * Maps a Quill text-align value to flexbox justifyContent for the RTL
+ * run container. The container is row-reverse (see rtlRunContainer in
+ * pdfStyles.ts) so chunks flow in proper RTL order; this just decides
+ * which edge of the line that sequence hugs, using the flipped
+ * flex-start/flex-end that row-reverse implies.
  */
 const RTL_JUSTIFY: Record<string, any> = {
+  // Container is row-reverse now, so main-axis "start" is the right edge
+  // and "end" is the left edge — flex-start/flex-end are flipped relative
+  // to what they'd mean in a plain row.
   right: { justifyContent: "flex-start" as const },
   left: { justifyContent: "flex-end" as const },
   center: { justifyContent: "center" as const },
@@ -144,37 +138,117 @@ function buildRunStyle(run: TextRun, baseStyle?: any): any[] {
   return s;
 }
 
+type ScriptDirection = "rtl" | "ltr";
+
+// Common ASCII punctuation — . , ! ? : ; ' " ( ) [ ] { } - / etc.
+const LATIN_PUNCTUATION_PATTERN = /[!-/:-@[-`{-~]/;
+
 /**
- * Splits a run's text into word tokens, each keeping its trailing
- * whitespace attached (so "word " stays one wrap-unit, not two).
+ * Classifies a single character as belonging to an RTL script, an LTR
+ * (Latin) script, or neutral (digits, whitespace). Neutral characters
+ * have no direction of their own — a real bidi algorithm keeps them
+ * attached to whichever surrounding run they fall inside, which is
+ * exactly what tokenizeRunByDirection below does.
  *
- * The RTL paragraphs below render each run as its own flex item inside
- * a row-reverse View instead of nesting <Text> children (react-pdf's
- * bidi engine mis-colors nested runs in RTL text). But a <Text> that's
- * a flex sibling is an *atomic* block in Yoga's layout — it never
- * wraps word-by-word against its neighbors, it just jumps to the next
- * line as a whole unit once the row runs out of space. As soon as a
- * paragraph has more than one run (i.e. any inline styling is applied
- * mid-line), that run — and everything after it — gets shoved onto its
- * own line instead of flowing with the rest of the paragraph.
- *
- * Tokenizing to word-level flex items fixes this: each *word* is now
- * the atomic wrap unit, so wrapping happens naturally across runs just
- * like normal text, regardless of how many differently-styled runs
- * make up the line.
+ * Latin punctuation (., !, ?, quotes, parens, ...) is treated as `ltr`
+ * rather than neutral — it should travel with the English/Latin word it
+ * belongs to, the same as a letter would. Leaving it neutral let it glue
+ * onto whichever chunk happened to be active at that point in the scan,
+ * which is what caused marks like "!" or "?" to end up stranded at the
+ * front of the reversed RTL sequence instead of staying attached to the
+ * English text they were typed next to.
  */
-function tokenizeRun(run: TextRun): TextRun[] {
-  const words = run.text.split(/(?<=\s)/); // keep trailing space on each word
-  return words
-    .filter(Boolean)
-    .map((text) => ({ text, attributes: run.attributes }));
+function charDirection(ch: string): ScriptDirection | null {
+  if (RTL_CHAR_PATTERN.test(ch)) return "rtl";
+  if (/[a-zA-Z]/.test(ch)) return "ltr";
+  if (LATIN_PUNCTUATION_PATTERN.test(ch)) return "ltr";
+  return null; // digits and whitespace stay neutral
 }
 
-/** Renders runs as word-level flex items for RTL row-reverse containers. */
+interface DirectionToken extends TextRun {
+  // True when this chunk was immediately followed by a space before the
+  // script switched to the next chunk — e.g. the space between an
+  // Arabic word and the English word after it.
+  gapAfter?: boolean;
+}
+
+// Approximate width of one space character at the document's base font
+// size — used to add the gap back in as real layout spacing rather than
+// as a character.
+const RTL_CHUNK_GAP = 3;
+
+/**
+ * Splits a run's text into direction-consistent chunks rather than
+ * individual words. A chunk only breaks where the script actually
+ * switches (Arabic <-> Latin); neutral characters (digits, whitespace)
+ * stay glued to whichever chunk they're already in.
+ *
+ * The RTL paragraphs below render each chunk as its own flex item inside
+ * a row-reverse View instead of nesting <Text> children (react-pdf's
+ * bidi engine mis-colors nested runs when a line has multiple styled
+ * spans). Splitting *per word* used to do this job, but it also broke
+ * embedded English phrases and numbers apart — every word, Arabic or
+ * not, got individually reordered by the row-reverse container, so
+ * "Invoice 4521" could come out as "4521 Invoice". Splitting per
+ * *direction-run* instead keeps a Latin phrase or a number together as
+ * one atomic, correctly-ordered unit, while Arabic runs still reverse
+ * against each other and against those chunks exactly as RTL requires.
+ *
+ * A space sitting right at the boundary between two chunks (e.g. "اريد
+ * hello") ends up glued to the edge of whichever chunk it's part of, and
+ * that chunk is rendered as its own isolated <Text> box. react-pdf trims
+ * leading/trailing whitespace off each Text box independently (like a
+ * block element collapsing edge whitespace in HTML), so that space gets
+ * silently dropped no matter what character is used for it — a plain
+ * space, a non-breaking space, all of it lands in the same trim. So
+ * instead of keeping the space as a character at all, it's stripped out
+ * here and reintroduced as `gapAfter`, which the renderer turns into
+ * real margin between the two chunks — layout spacing can't be trimmed
+ * the way a text character can.
+ */
+function tokenizeRunByDirection(run: TextRun): DirectionToken[] {
+  const chars = Array.from(run.text);
+  if (chars.length === 0) return [];
+
+  const tokens: DirectionToken[] = [];
+  let current = "";
+  let currentDir: ScriptDirection | null = null;
+
+  function flush(text: string) {
+    const gapAfter = / $/.test(text);
+    const cleanText = gapAfter ? text.replace(/ +$/, "") : text;
+    tokens.push({ text: cleanText, attributes: run.attributes, gapAfter });
+  }
+
+  for (const ch of chars) {
+    const dir = charDirection(ch);
+    if (currentDir === null || dir === null || dir === currentDir) {
+      current += ch;
+      if (currentDir === null && dir !== null) currentDir = dir;
+    } else {
+      flush(current);
+      current = ch;
+      currentDir = dir;
+    }
+  }
+  if (current) flush(current);
+  return tokens;
+}
+
+/** Renders runs as direction-run flex items for RTL row-reverse containers. */
 function renderRTLTokens(runs: TextRun[], baseStyle?: any) {
   return runs.flatMap((run, rIdx) =>
-    tokenizeRun(run).map((token, tIdx) => (
-      <Text key={`${rIdx}-${tIdx}`} style={buildRunStyle(token, baseStyle)}>
+    tokenizeRunByDirection(run).map((token, tIdx) => (
+      <Text
+        key={`${rIdx}-${tIdx}`}
+        style={[
+          ...buildRunStyle(token, baseStyle),
+          // Container is row-reverse, so the next chunk in reading order
+          // sits visually to this one's true left — marginLeft opens a
+          // real gap there instead of relying on a trimmable space char.
+          ...(token.gapAfter ? [{ marginLeft: RTL_CHUNK_GAP }] : []),
+        ]}
+      >
         {token.text}
       </Text>
     )),
@@ -241,65 +315,6 @@ function renderDeltaBlock(blockContent: string, blockIdx: number) {
         // Explicit direction (from the editor's RTL button) wins over
         // auto-detection — the user told us directly.
         const isRTLParagraph = para.direction === "rtl" || isRTLText(paraText);
-        const indentPadding = (para.indentLevel || 0) * 20;
-
-        // Bullet list items. Numbering has been removed — any list
-        // (including legacy "ordered" data from older saved documents)
-        // renders as a bullet marker.
-        if (para.listType === "bullet" || para.listType === "ordered") {
-          const marker = bulletFor(para.indentLevel || 0);
-
-          // Marker side rule:
-          //  - justify right + RTL  -> marker on the right
-          //  - justify left  + LTR  -> marker on the left
-          //  - anything else (center/justify align, or an align/lang
-          //    mismatch) -> just follow the detected direction
-          const markerOnRight =
-            para.alignment === "right" && isRTLParagraph
-              ? true
-              : para.alignment === "left" && !isRTLParagraph
-                ? false
-                : isRTLParagraph;
-
-          return (
-            <View
-              key={pIdx}
-              style={
-                [
-                  pdfStyles.listItemRow,
-                  markerOnRight ? pdfStyles.listItemRowRTL : undefined,
-                  markerOnRight
-                    ? { paddingRight: indentPadding }
-                    : { paddingLeft: indentPadding },
-                ] as any
-              }
-            >
-              <Text
-                style={[
-                  pdfStyles.listMarker,
-                  markerOnRight ? { marginLeft: 3 } : { marginRight: 3 },
-                ]}
-              >
-                {marker}
-              </Text>
-              {isRTLParagraph && para.runs.length > 1 ? (
-                <View
-                  style={[
-                    pdfStyles.rtlRunContainer,
-                    { flex: 1 },
-                    rtlJustify(para.alignment),
-                  ]}
-                >
-                  {renderRTLTokens(para.runs, pdfStyles.listText)}
-                </View>
-              ) : (
-                <Text style={[pdfStyles.listText, para.alignStyle]}>
-                  {renderRuns(para.runs)}
-                </Text>
-              )}
-            </View>
-          );
-        }
 
         // Headings
         const headingStyle =
@@ -319,11 +334,10 @@ function renderDeltaBlock(blockContent: string, blockIdx: number) {
                 pdfStyles.paragraphWrapper,
                 !isRTLParagraph ? para.alignStyle : undefined,
                 headingStyle ? pdfStyles.headingWrapper : undefined,
-                { paddingLeft: indentPadding },
               ] as any
             }
           >
-            {isRTLParagraph && para.runs.length > 1 ? (
+            {isRTLParagraph ? (
               <View
                 style={[pdfStyles.rtlRunContainer, rtlJustify(para.alignment)]}
               >

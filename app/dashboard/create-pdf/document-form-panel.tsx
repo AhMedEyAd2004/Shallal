@@ -166,6 +166,9 @@ export function DocumentFormPanel({
     const deltaJson = editor.getContents(); // Returns a pure JSON object mapping insertions
     const jsonString = JSON.stringify(deltaJson);
 
+    console.log("deltaJson", deltaJson);
+    console.log("jsonString", jsonString);
+
     // 2. Map this strict JSON string straight into your component form array state
     setFormData((prev) => {
       const updatedPages = [...(prev.pages || [])];
@@ -185,7 +188,6 @@ export function DocumentFormPanel({
       [{ color: [] }, { background: [] }],
       [{ align: "" }, { align: "center" }, { align: "right" }],
       [{ header: [false, 1, 2] }],
-      [{ list: "bullet" }],
       // Native Quill format — toggles the block's writing direction. Quill's
       // own default handler auto-pairs this with alignment (RTL on -> align
       // right, RTL off -> align back left), so no custom handler needed.
@@ -214,8 +216,6 @@ export function DocumentFormPanel({
     "background",
     "align",
     "header",
-    "list",
-    "indent", // Tab/Shift+Tab indent levels on list items
     "direction",
   ];
 
@@ -497,7 +497,12 @@ export function DocumentFormPanel({
                           modules={quillModules}
                           formats={quillFormats}
                           placeholder="Type separate chunk description details…"
-                          onChange={(content: string, delta: any, source: string, editor: any) =>
+                          onChange={(
+                            content: string,
+                            delta: any,
+                            source: string,
+                            editor: any,
+                          ) =>
                             handleBlockChange(
                               pageIdx,
                               blockIdx,

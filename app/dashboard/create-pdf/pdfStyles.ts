@@ -109,22 +109,14 @@ export const pdfStyles = StyleSheet.create({
   heading3: { fontSize: 14, fontWeight: "bold" },
   headingWrapper: { marginTop: 10, marginBottom: 6 },
 
-  // --- List items ---
-  listItemRow: {
-    flexDirection: "row" as const,
-    alignItems: "flex-end" as const,
-    marginBottom: 4,
-    width: "100%",
-  },
-  listItemRowRTL: {
-    flexDirection: "row-reverse" as const,
-  },
-  listMarker: { fontSize: 11 },
-  listText: { flex: 1, fontSize: 11 },
-
-  // RTL multi-run container: lays out individually-styled <Text>
-  // elements right-to-left so we sidestep react-pdf's broken bidi
-  // style-assignment that mis-colors runs in nested <Text> children.
+  // RTL multi-run container: direction-run splitting (dynamic-pdf-document.tsx)
+  // keeps each Arabic/Latin chunk internally intact (so "Invoice 4521" stays
+  // together), but the *chunks themselves* still need to flow in RTL order —
+  // the first chunk typed is the paragraph's logical start and belongs at
+  // the right edge, with later chunks continuing leftward. row-reverse gives
+  // us that: main-axis start becomes the right side, so source order
+  // [chunk1, chunk2, chunk3] lands right-to-left as chunk1, chunk2, chunk3
+  // (see rtlJustify in dynamic-pdf-document.tsx for the matching flip).
   rtlRunContainer: {
     flexDirection: "row-reverse" as const,
     flexWrap: "wrap" as const,
