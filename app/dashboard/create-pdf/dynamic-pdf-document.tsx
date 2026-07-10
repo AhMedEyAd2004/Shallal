@@ -148,7 +148,7 @@ const LATIN_PUNCTUATION_PATTERN = /[!-/:-@[-`{-~]/;
  * (Latin) script, or neutral (digits, whitespace). Neutral characters
  * have no direction of their own — a real bidi algorithm keeps them
  * attached to whichever surrounding run they fall inside, which is
- * exactly what tokenizeRunByDirection below does.
+ * exactly what paragraphRunsToDirectionChunks below does.
  *
  * Latin punctuation (., !, ?, quotes, parens, ...) is treated as `ltr`
  * rather than neutral — it should travel with the English/Latin word it
@@ -166,9 +166,23 @@ function charDirection(ch: string): ScriptDirection | null {
 }
 
 interface DirectionToken extends TextRun {
-  // True when this chunk was immediately followed by a space before the
-  // script switched to the next chunk — e.g. the space between an
-  // Arabic word and the English word after it.
+  // True when this token was immediately followed by a space before the
+  // next token began (a script switch, or just a new inline-attribute
+  // span) — e.g. the space between an Arabic word and the English word
+  // after it, or between two differently-styled words in the same
+  // script.
+  gapAfter?: boolean;
+}
+
+interface DirectionChunk {
+  // The script direction this whole chunk belongs to. A chunk can hold
+  // several *tokens* (one per distinct set of inline attributes —
+  // underline, color, ...) as long as the script doesn't change; it
+  // only ends where the text actually switches between RTL and LTR.
+  direction: ScriptDirection;
+  tokens: DirectionToken[];
+  // Gap before the *next* chunk, i.e. whether this chunk's source text
+  // ended in a space.
   gapAfter?: boolean;
 }
 
@@ -178,81 +192,175 @@ interface DirectionToken extends TextRun {
 const RTL_CHUNK_GAP = 3;
 
 /**
- * Splits a run's text into direction-consistent chunks rather than
- * individual words. A chunk only breaks where the script actually
- * switches (Arabic <-> Latin); neutral characters (digits, whitespace)
- * stay glued to whichever chunk they're already in.
+ * Groups a whole paragraph's runs into direction-consistent chunks,
+ * scanning across run (and therefore inline-attribute) boundaries
+ * instead of resetting at each one.
  *
- * The RTL paragraphs below render each chunk as its own flex item inside
- * a row-reverse View instead of nesting <Text> children (react-pdf's
- * bidi engine mis-colors nested runs when a line has multiple styled
- * spans). Splitting *per word* used to do this job, but it also broke
- * embedded English phrases and numbers apart — every word, Arabic or
- * not, got individually reordered by the row-reverse container, so
- * "Invoice 4521" could come out as "4521 Invoice". Splitting per
- * *direction-run* instead keeps a Latin phrase or a number together as
- * one atomic, correctly-ordered unit, while Arabic runs still reverse
- * against each other and against those chunks exactly as RTL requires.
+ * This matters because Quill starts a new op wherever inline formatting
+ * changes — e.g. underlining one word in the middle of an English
+ * phrase turns "hello i am ahmed" into three separate runs: "hello i ",
+ * "am " (underlined), "ahmed ...". Tokenizing each run in isolation (the
+ * old approach) turned those three runs into three independent flex
+ * items inside the RTL row-reverse container below. row-reverse has no
+ * way to know they were really one contiguous English phrase, so it
+ * reordered them exactly like it reorders real script boundaries —
+ * turning "hello i am ahmed" into "ahmed am hello i" the moment any
+ * single word inside it got its own formatting.
  *
- * A space sitting right at the boundary between two chunks (e.g. "اريد
- * hello") ends up glued to the edge of whichever chunk it's part of, and
- * that chunk is rendered as its own isolated <Text> box. react-pdf trims
- * leading/trailing whitespace off each Text box independently (like a
- * block element collapsing edge whitespace in HTML), so that space gets
- * silently dropped no matter what character is used for it — a plain
- * space, a non-breaking space, all of it lands in the same trim. So
- * instead of keeping the space as a character at all, it's stripped out
- * here and reintroduced as `gapAfter`, which the renderer turns into
- * real margin between the two chunks — layout spacing can't be trimmed
- * the way a text character can.
+ * A chunk now only breaks where the *script* actually changes (Arabic
+ * <-> Latin); neutral characters (digits, whitespace) stay glued to
+ * whichever chunk they're already in, same as before. Differing inline
+ * attributes mid-chunk produce additional *tokens* within the same
+ * chunk instead of ending it, so a formatted word in the middle of an
+ * English (or Arabic) phrase no longer fractures that phrase into
+ * separately-reorderable pieces — it keeps reading in the original
+ * order, and only the one word picks up the requested style.
+ *
+ * A space sitting right at a token or chunk boundary ends up glued to
+ * the edge of whichever piece it's part of, and that piece is rendered
+ * as its own isolated <Text> box. react-pdf trims leading/trailing
+ * whitespace off each Text box independently (like a block element
+ * collapsing edge whitespace in HTML), so that space gets silently
+ * dropped no matter what character is used for it. So instead of
+ * keeping it as a character at all, it's stripped out here and
+ * reintroduced as `gapAfter`, which the renderer turns into real margin
+ * — layout spacing can't be trimmed the way a text character can.
  */
-function tokenizeRunByDirection(run: TextRun): DirectionToken[] {
-  const chars = Array.from(run.text);
-  if (chars.length === 0) return [];
+function paragraphRunsToDirectionChunks(runs: TextRun[]): DirectionChunk[] {
+  const chunks: DirectionChunk[] = [];
 
-  const tokens: DirectionToken[] = [];
-  let current = "";
-  let currentDir: ScriptDirection | null = null;
+  let chunkDir: ScriptDirection | null = null;
+  let chunkTokens: DirectionToken[] = [];
+  let tokenText = "";
+  let tokenAttrs: Record<string, any> = {};
+  let hasToken = false;
 
-  function flush(text: string) {
-    const gapAfter = / $/.test(text);
-    const cleanText = gapAfter ? text.replace(/ +$/, "") : text;
-    tokens.push({ text: cleanText, attributes: run.attributes, gapAfter });
+  const attrsKey = (attrs: Record<string, any>) => JSON.stringify(attrs || {});
+
+  function endToken() {
+    if (!hasToken) return;
+    const gapAfter = / $/.test(tokenText);
+    const text = gapAfter ? tokenText.replace(/ +$/, "") : tokenText;
+    if (text) chunkTokens.push({ text, attributes: tokenAttrs, gapAfter });
+    tokenText = "";
+    hasToken = false;
   }
 
-  for (const ch of chars) {
-    const dir = charDirection(ch);
-    if (currentDir === null || dir === null || dir === currentDir) {
-      current += ch;
-      if (currentDir === null && dir !== null) currentDir = dir;
-    } else {
-      flush(current);
-      current = ch;
-      currentDir = dir;
+  function endChunk() {
+    endToken();
+    if (chunkTokens.length > 0 && chunkDir) {
+      const gapAfter = chunkTokens[chunkTokens.length - 1]?.gapAfter ?? false;
+      chunks.push({ direction: chunkDir, tokens: chunkTokens, gapAfter });
+    }
+    chunkTokens = [];
+    chunkDir = null;
+  }
+
+  for (const run of runs) {
+    const attrs = run.attributes || {};
+    for (const ch of Array.from(run.text)) {
+      const dir = charDirection(ch);
+
+      // Script switch: close out the chunk so far (its trailing space,
+      // if any, becomes the gap before this new chunk).
+      if (chunkDir !== null && dir !== null && dir !== chunkDir) {
+        endChunk();
+      }
+      if (chunkDir === null && dir !== null) chunkDir = dir;
+
+      // Attribute switch within the same chunk: close out the current
+      // token only — the chunk itself keeps going.
+      if (hasToken && attrsKey(attrs) !== attrsKey(tokenAttrs)) {
+        endToken();
+      }
+      tokenAttrs = attrs;
+      tokenText += ch;
+      hasToken = true;
     }
   }
-  if (current) flush(current);
-  return tokens;
+  endChunk();
+
+  return chunks;
 }
 
-/** Renders runs as direction-run flex items for RTL row-reverse containers. */
-function renderRTLTokens(runs: TextRun[], baseStyle?: any) {
-  return runs.flatMap((run, rIdx) =>
-    tokenizeRunByDirection(run).map((token, tIdx) => (
-      <Text
-        key={`${rIdx}-${tIdx}`}
+// Nested containers used only when a single direction-chunk contains
+// more than one differently-styled token. An LTR chunk's tokens stay in
+// plain reading order — a formatted word shouldn't reshuffle the
+// English phrase it's part of. An RTL chunk's tokens still need
+// row-reverse, for the same reason the top-level RTL paragraph does:
+// each token is its own isolated flex item, and their positions
+// relative to each other only come out right-to-left if the container
+// reverses them.
+const nestedLtrContainerStyle = {
+  flexDirection: "row" as const,
+  flexWrap: "wrap" as const,
+};
+const nestedRtlContainerStyle = {
+  flexDirection: "row-reverse" as const,
+  flexWrap: "wrap" as const,
+};
+
+/**
+ * Renders a paragraph's runs as direction-chunk flex items for the
+ * top-level RTL row-reverse container. Each chunk is one flex item;
+ * a chunk with multiple differently-styled tokens renders those tokens
+ * in a nested container using the *chunk's own* direction, instead of
+ * being flattened into the outer container where they'd be reordered
+ * as if each were its own top-level chunk.
+ */
+function renderDirectionChunks(runs: TextRun[], baseStyle?: any) {
+  const chunks = paragraphRunsToDirectionChunks(runs);
+
+  return chunks.map((chunk, cIdx) => {
+    const isRTL = chunk.direction === "rtl";
+    // This chunk is a flex item in the *outer* container, which is
+    // always row-reverse regardless of this particular chunk's own
+    // script (the outer container only flips between chunks — Arabic
+    // and English alike — never between tokens inside one). So the gap
+    // before the *next chunk* always sits to this item's visual left,
+    // no matter whether this chunk itself is RTL or LTR.
+    const outerGapStyle = chunk.gapAfter ? { marginLeft: RTL_CHUNK_GAP } : {};
+
+    if (chunk.tokens.length === 1) {
+      const token = chunk.tokens[0];
+      return (
+        <Text
+          key={cIdx}
+          style={[...buildRunStyle(token, baseStyle), outerGapStyle]}
+        >
+          {token.text}
+        </Text>
+      );
+    }
+
+    return (
+      <View
+        key={cIdx}
         style={[
-          ...buildRunStyle(token, baseStyle),
-          // Container is row-reverse, so the next chunk in reading order
-          // sits visually to this one's true left — marginLeft opens a
-          // real gap there instead of relying on a trimmable space char.
-          ...(token.gapAfter ? [{ marginLeft: RTL_CHUNK_GAP }] : []),
+          isRTL ? nestedRtlContainerStyle : nestedLtrContainerStyle,
+          outerGapStyle,
         ]}
       >
-        {token.text}
-      </Text>
-    )),
-  );
+        {chunk.tokens.map((token, tIdx) => {
+          const isLast = tIdx === chunk.tokens.length - 1;
+          const innerGap =
+            !isLast && token.gapAfter
+              ? isRTL
+                ? { marginLeft: RTL_CHUNK_GAP }
+                : { marginRight: RTL_CHUNK_GAP }
+              : {};
+          return (
+            <Text
+              key={tIdx}
+              style={[...buildRunStyle(token, baseStyle), innerGap]}
+            >
+              {token.text}
+            </Text>
+          );
+        })}
+      </View>
+    );
+  });
 }
 
 /**
@@ -341,7 +449,10 @@ function renderDeltaBlock(blockContent: string, blockIdx: number) {
               <View
                 style={[pdfStyles.rtlRunContainer, rtlJustify(para.alignment)]}
               >
-                {renderRTLTokens(para.runs, headingStyle || pdfStyles.normal)}
+                {renderDirectionChunks(
+                  para.runs,
+                  headingStyle || pdfStyles.normal,
+                )}
               </View>
             ) : (
               <Text style={[headingStyle || pdfStyles.normal, para.alignStyle]}>
