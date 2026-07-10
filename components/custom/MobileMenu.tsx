@@ -49,7 +49,8 @@ export function MobileMenu({ email, createdAt }: MobileMenuProps) {
   const navItems = [
     { label: "Home", href: "/home" },
     { label: "Manage Data", href: "/dashboard/manage-data" },
-    { label: "Create PDF", href: "/dashboard/create-pdf" },
+    { label: "Manage PDFs", href: "/dashboard/create-pdf" },
+    { label: "Notes", href: "/dashboard/notes" },
   ];
 
   const handleSignOut = () => {

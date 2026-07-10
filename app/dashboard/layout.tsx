@@ -58,7 +58,14 @@ export default async function DashboardLayout({
             asChild
             className="text-muted-foreground hover:text-foreground"
           >
-            <Link href="/dashboard/create-pdf">Create PDF</Link>
+            <Link href="/dashboard/create-pdf">Manage PDFs</Link>
+          </Button>
+          <Button
+            variant="ghost"
+            asChild
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Link href="/dashboard/notes">Notes</Link>
           </Button>
         </nav>
 

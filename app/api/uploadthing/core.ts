@@ -20,6 +20,14 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       return { uploadedBy: metadata.userId };
     }),
+  pdfUploader: f({
+    "application/pdf": {
+      maxFileSize: "16MB",
+      maxFileCount: 1,
+    },
+  }).onUploadComplete(async ({ file }) => {
+    console.log("PDF uploaded:", file.url);
+  }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

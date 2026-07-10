@@ -1,6 +1,6 @@
 "use server";
 
-import { unstable_cache, revalidateTag } from "next/cache";
+import { unstable_cache, updateTag } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { ClientInfo, CompanySettings } from "./pdf";
 
@@ -21,6 +21,8 @@ export interface StoredPdfDocument {
   title: string;
   client: ClientInfo;
   tags: string[];
+  pages?: string[][];
+  company_snapshot?: CompanySettings;
   updated_at: string;
 }
 
@@ -40,7 +42,9 @@ export const getPdfDocuments = unstable_cache(
   async (): Promise<StoredPdfDocument[]> => {
     const { data, error } = await supabase
       .from("pdf_documents")
-      .select("id, filepath, filename, title, client, tags, updated_at")
+      .select(
+        "id, filepath, filename, title, client, tags, updated_at, pages, company_snapshot",
+      )
       .order("updated_at", { ascending: false });
 
     if (error) {
@@ -85,6 +89,18 @@ export async function createPdfDocument(
     return { success: false, error: error.message };
   }
 
-  revalidateTag("pdf_documents");
+  updateTag("pdf_documents");
+  return { success: true };
+}
+
+export async function deletePdfDocument(id: string) {
+  const { error } = await supabase.from("pdf_documents").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting pdf_document:", error);
+    return { success: false, error: error.message };
+  }
+
+  updateTag("pdf_documents");
   return { success: true };
 }

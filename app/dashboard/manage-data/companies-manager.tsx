@@ -213,7 +213,7 @@ export function CompaniesManager({ companies }: { companies: any[] }) {
           >
             <div className="space-y-2">
               <Label>Company Name</Label>
-              <Input name="title" required placeholder="e.g. Acme Corp" />
+              <Input name="title" required placeholder="e.g. Acme Corp" dir="auto" />
             </div>
 
             <SingleImageManager
@@ -327,7 +327,7 @@ export function CompaniesManager({ companies }: { companies: any[] }) {
                   })()}
               </div>
 
-              <p className="font-medium text-sm text-center">{c.title}</p>
+              <p className="font-medium text-sm text-center" dir="auto">{c.title}</p>
 
               <Button
                 variant="destructive"

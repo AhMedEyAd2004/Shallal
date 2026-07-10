@@ -9,17 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUploadThing } from "@/lib/uploadthing";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  ImageIcon,
-  Pen,
-  Plus,
-  Search,
-  Trash,
-  X,
-} from "lucide-react";
+import { Eye, ImageIcon, Pen, Plus, Search, Trash, X } from "lucide-react";
 import { useState, useTransition } from "react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
@@ -57,8 +47,9 @@ function TestimonialsList({
         <div
           key={t.id}
           className="bg-muted p-3 rounded-lg text-sm relative group"
+          dir="auto"
         >
-          <span className="font-semibold">{t.person_name}</span>: &ldquo;
+          <span className="font-semibold" dir="auto">{t.person_name}</span>: &ldquo;
           {t.comment}&rdquo;
           <div className="mt-2 flex gap-2 items-center">
             <span
@@ -250,7 +241,7 @@ function ImageManager({ initialImages = [] }: { initialImages?: string[] }) {
                 className="h-10 w-10 object-cover rounded"
               />
               <div className="truncate">
-                <p className="text-sm font-medium truncate">{file.name}</p>
+                <p className="text-sm font-medium truncate" dir="auto">{file.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {file.size ? formatSize(file.size) : "Uploaded"}
                 </p>
@@ -341,6 +332,7 @@ function LinksManager({ initialLinks = [] }: { initialLinks?: any }) {
               value={link.url}
               onChange={(e) => updateLink(idx, "url", e.target.value)}
               className="flex-1"
+              dir="auto"
             />
             <Button
               type="button"
@@ -373,7 +365,7 @@ const projectFormFields = (p?: any) => (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label>Title</Label>
-        <Input defaultValue={p?.title || ""} name="title" required />
+        <Input defaultValue={p?.title || ""} name="title" required dir="auto" />
       </div>
       <div className="space-y-2">
         <Label>Country</Label>
@@ -387,6 +379,7 @@ const projectFormFields = (p?: any) => (
         defaultValue={p?.description || ""}
         name="description"
         rows={6}
+        dir="auto"
       />
     </div>
 
@@ -396,6 +389,7 @@ const projectFormFields = (p?: any) => (
         defaultValue={(p?.tags || []).join(", ")}
         name="tags"
         placeholder="e.g. web, react, frontend"
+        dir="auto"
       />
     </div>
 
@@ -409,8 +403,8 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
   const [search, setSearch] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 6;
+  const PAGE_SIZE = 6;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const filteredProjects = projects.filter((p) => {
     if (!search) return true;
@@ -422,19 +416,8 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
     return matchTitle || matchTags;
   });
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredProjects.length / ITEMS_PER_PAGE),
-  );
-  // Clamp in case items were deleted and the page no longer exists
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedProjects = filteredProjects.slice(
-    (safePage - 1) * ITEMS_PER_PAGE,
-    safePage * ITEMS_PER_PAGE,
-  );
-  const goToPage = (page: number) => {
-    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
-  };
+  const paginatedProjects = filteredProjects.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredProjects.length;
 
   const handleAction = async (
     actionFn: () => Promise<any>,
@@ -466,8 +449,9 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
-                setCurrentPage(1);
+                setVisibleCount(PAGE_SIZE);
               }}
+              dir="auto"
             />
           </div>
 
@@ -509,37 +493,25 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
               : "/logo.png";
 
           const editFormContent = (
-            <div className="space-y-6 pt-4 pb-8">
-              {p.images && p.images.length > 0 && (
-                <ImageCarousel images={p.images} alt={p.title} />
-              )}
-
-              <div className="text-center space-y-4 mb-6">
-                <h3 className="text-2xl font-bold font-stack">{p.title}</h3>
-              </div>
-
-              <form
-                action={(formData) =>
-                  startTransition(() =>
-                    handleAction(
-                      () => updateProjectAction(p.id, formData),
-                      "Project successfully updated!",
-                    ),
-                  )
-                }
-                className="space-y-4"
-              >
-                <div className="text-sm text-muted-foreground mb-4">
-                  <span className="font-semibold text-foreground">
-                    Created at:
-                  </span>{" "}
-                  {new Date(p.created_at).toLocaleString()}
-                </div>
-
-                {projectFormFields(p)}
+            <form
+              action={(formData) =>
+                startTransition(() =>
+                  handleAction(
+                    () => updateProjectAction(p.id, formData),
+                    "Project successfully updated!",
+                  ),
+                )
+              }
+              className="pt-4 pb-8 grid grid-cols-1 md:grid-cols-2 gap-8"
+            >
+              {/* Left Column: Media & Testimonials */}
+              <div className="space-y-6">
+                {p.images && p.images.length > 0 && (
+                  <ImageCarousel images={p.images} alt={p.title} />
+                )}
 
                 {/* Display & Add Testimonials */}
-                <div className="space-y-4 border-t pt-8 mt-8">
+                <div className="space-y-4 border-t pt-6 mt-6">
                   <h4 className="font-semibold text-lg">
                     Project Testimonials
                   </h4>
@@ -552,11 +524,13 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
                         name="testi_person_name"
                         placeholder="Person Name"
                         className="h-8 text-sm"
+                        dir="auto"
                       />
                       <Input
                         name="testi_person_role"
                         placeholder="Role (e.g. CEO)"
                         className="h-8 text-sm"
+                        dir="auto"
                       />
                     </div>
                     <Textarea
@@ -564,6 +538,7 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
                       placeholder="Testimonial comment..."
                       rows={2}
                       className="text-sm min-h-[60px]"
+                      dir="auto"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
                       Filling this adds a testimonial when you save the project.
@@ -585,25 +560,43 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
                     />
                   </div>
                 </div>
+              </div>
 
-                <div className="flex justify-between items-center pt-6 border-t mt-8">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={() =>
-                      startTransition(() =>
-                        handleAction(() => deleteProjectAction(p.id)),
-                      )
-                    }
-                  >
-                    Delete Project
-                  </Button>
-                  <Button type="submit" disabled={isPending} className="px-8">
-                    Save Changes
-                  </Button>
+              {/* Right Column: Title & Form Fields */}
+              <div className="space-y-6">
+                <div className="space-y-4 mb-4">
+                  <h3 className="text-3xl font-bold font-stack" dir="auto">{p.title}</h3>
                 </div>
-              </form>
-            </div>
+
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground mb-4">
+                    <span className="font-semibold text-foreground">
+                      Created at:
+                    </span>{" "}
+                    {new Date(p.created_at).toLocaleString()}
+                  </div>
+
+                  {projectFormFields(p)}
+
+                  <div className="flex justify-between items-center pt-6 border-t mt-8">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      onClick={() =>
+                        startTransition(() =>
+                          handleAction(() => deleteProjectAction(p.id)),
+                        )
+                      }
+                    >
+                      Delete Project
+                    </Button>
+                    <Button type="submit" disabled={isPending} className="px-8">
+                      Save Changes
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </form>
           );
 
           return (
@@ -665,44 +658,29 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
           );
         })}
       </div>
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 pt-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => goToPage(safePage - 1)}
-            disabled={safePage === 1}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
 
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <Button
-                key={page}
-                type="button"
-                variant={page === safePage ? "default" : "outline"}
-                size="icon"
-                className="h-8 w-8 text-xs"
-                onClick={() => goToPage(page)}
-              >
-                {page}
-              </Button>
-            ))}
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => goToPage(safePage + 1)}
-            disabled={safePage === totalPages}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+      {(hasMore || visibleCount > PAGE_SIZE) && (
+        <div className="flex justify-center gap-3 pt-2">
+          {hasMore && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
+              className="rounded-full px-6"
+            >
+              View More
+            </Button>
+          )}
+          {visibleCount > PAGE_SIZE && (
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setVisibleCount(PAGE_SIZE)}
+              className="rounded-full px-6"
+            >
+              View Less
+            </Button>
+          )}
         </div>
       )}
     </div>

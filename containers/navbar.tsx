@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
+import { RawSocialLink } from "@/components/social-links";
 
 import { signOutAction } from "@/app/dashboard/actions";
 
@@ -55,9 +56,8 @@ export default function Header() {
 
   // State to hold the logged-in user data
   const [user, setUser] = useState<User | null>(null);
-  const [socialLinks, setSocialLinks] = useState<
-    { id: string; platform: typeof SOCIAL_PLATFORMS; url_or_number: string }[]
-  >([]);
+
+  const [socialLinks, setSocialLinks] = useState<RawSocialLink[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -171,8 +171,8 @@ export default function Header() {
                       link: "/dashboard/manage-data",
                     },
                     {
-                      label: "Create PDF",
-                      link: "/dashboard/manage-data",
+                      label: "Manage PDFs",
+                      link: "/dashboard/create-pdf",
                     },
                   ]
                 : []),

@@ -14,16 +14,11 @@ Font.register({
   ],
 });
 
-// Single source of truth for every style used across the PDF templates.
-// Previously this file AND dynamic-pdf-document.tsx each kept their own
-// `StyleSheet.create(...)` — including two different definitions of
-// `page` (only one of which was ever actually applied) — which made it
-// easy for the two to drift. Everything now lives here.
 export const pdfStyles = StyleSheet.create({
   // --- Page ---
   page: {
     padding: 50,
-    paddingBottom: 60,
+    paddingBottom: 70,
     fontFamily: "Tajwal",
     fontSize: 11,
     lineHeight: 1.4,
@@ -126,6 +121,15 @@ export const pdfStyles = StyleSheet.create({
   },
   listMarker: { fontSize: 11 },
   listText: { flex: 1, fontSize: 11 },
+
+  // RTL multi-run container: lays out individually-styled <Text>
+  // elements right-to-left so we sidestep react-pdf's broken bidi
+  // style-assignment that mis-colors runs in nested <Text> children.
+  rtlRunContainer: {
+    flexDirection: "row-reverse" as const,
+    flexWrap: "wrap" as const,
+    width: "100%",
+  },
 
   // --- Generic section helpers (kept for other/simpler templates) ---
   sectionTitle: {

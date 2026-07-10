@@ -185,9 +185,9 @@ export function CompanySettingsForm({
   }
 
   return (
-    <div className="w-full flex flex-col h-full overflow-y-auto">
+    <div className="w-full relative px-1 flex flex-col h-full">
       {/* Save */}
-      <div className="absolute right-2.5 top-2.5 flex items-center gap-3">
+      <div className=" absolute top-0 right-0 -translate-y-1/2 md:-translate-y-full flex items-center gap-3">
         <Button type="button" onClick={handleSave}>
           Save Settings
         </Button>

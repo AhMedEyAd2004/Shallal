@@ -497,7 +497,7 @@ export function DocumentFormPanel({
                           modules={quillModules}
                           formats={quillFormats}
                           placeholder="Type separate chunk description details…"
-                          onChange={(content, delta, source, editor) =>
+                          onChange={(content: string, delta: any, source: string, editor: any) =>
                             handleBlockChange(
                               pageIdx,
                               blockIdx,

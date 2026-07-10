@@ -50,119 +50,127 @@ export default function ProjectCard({
 
   // Default public drawer content (Matches Edit Drawer exactly)
   const defaultDrawerContent = (
-    <div className="space-y-6 pt-4 pb-12">
-      <ImageCarousel images={imagesArray} alt={title} />
+    <div className="pt-4 pb-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Left Column: Media & Testimonials */}
+      <div className="space-y-6">
+        <ImageCarousel images={imagesArray} alt={title} />
+        
+        <div className="space-y-4 border-t pt-6 mt-6">
+          <h4 className="font-semibold text-lg">Project Testimonials</h4>
 
-      <div className="text-center space-y-4 mb-6">
-        <h3 className="text-2xl font-bold font-stack">{title}</h3>
+          {rest.testimonials && rest.testimonials.length > 0 ? (
+            <div className="space-y-2">
+              {visibleTestimonials?.map((t: any) => (
+                <div
+                  key={t.id}
+                  className="bg-muted p-3 rounded-lg text-sm relative group text-left"
+                  dir="auto"
+                >
+                  <span className="font-semibold" dir="auto">{t.person_name || t.name}</span>
+                  {(t.person_role || t.role) && (
+                    <span className="text-muted-foreground text-xs ml-1" dir="auto">
+                      ({t.person_role || t.role})
+                    </span>
+                  )}
+                  : &ldquo;{t.comment || t.text}&rdquo;
+                </div>
+              ))}
+
+              {!expandedTestimonials && rest.testimonials.length > 2 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="w-full text-xs mt-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedTestimonials(true);
+                  }}
+                >
+                  View More ({rest.testimonials.length - 2})
+                </Button>
+              )}
+              {expandedTestimonials && rest.testimonials.length > 2 && (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  className="w-full text-xs mt-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedTestimonials(false);
+                  }}
+                >
+                  Show Less
+                </Button>
+              )}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">No Testimonials yet</p>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        {country && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-foreground">Country</p>
-            <div className="flex items-center gap-2">
-              <FlagImage
-                countryCode={country}
-                countryName={country}
-                width={20}
-                height={20}
-                className="shrink-0"
-              />
-              <p className="text-muted-foreground text-sm">
-                {getCountryLabel(country)}
-              </p>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Description</p>
-          <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm md:text-base">
-            {description}
-          </p>
+      {/* Right Column: Title, Info, Links */}
+      <div className="space-y-6">
+        <div className="space-y-4 mb-4">
+          <h3 className="text-3xl font-bold font-stack" dir="auto">{title}</h3>
         </div>
 
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Tags</p>
-          <div className="flex flex-wrap gap-2">
-            {tags && tags.length > 0 ? (
-              tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium"
-                >
-                  {tag}
-                </span>
-              ))
+        <div className="space-y-6">
+          {country && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-foreground">Country</p>
+              <div className="flex items-center gap-2">
+                <FlagImage
+                  countryCode={country}
+                  countryName={country}
+                  width={20}
+                  height={20}
+                  className="shrink-0"
+                />
+                <p className="text-muted-foreground text-sm">
+                  {getCountryLabel(country)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Description</p>
+            <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-sm md:text-base" dir="auto">
+              {description}
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Tags</p>
+            <div className="flex flex-wrap gap-2">
+              {tags && tags.length > 0 ? (
+                tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-3 py-1 bg-primary/10 text-primary text-xs rounded-full font-medium"
+                    dir="auto"
+                  >
+                    {tag}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-muted-foreground">None</span>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-foreground">Links</p>
+            {rest.links && rest.links.length > 0 ? (
+              <ProjectLinks links={rest.links} />
             ) : (
               <span className="text-sm text-muted-foreground">None</span>
             )}
           </div>
         </div>
-
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Links</p>
-          {rest.links && rest.links.length > 0 ? (
-            <ProjectLinks links={rest.links} />
-          ) : (
-            <span className="text-sm text-muted-foreground">None</span>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-4 border-t pt-8 mt-8">
-        <h4 className="font-semibold text-lg">Project Testimonials</h4>
-
-        {rest.testimonials && rest.testimonials.length > 0 ? (
-          <div className="space-y-2">
-            {visibleTestimonials?.map((t: any) => (
-              <div
-                key={t.id}
-                className="bg-muted p-3 rounded-lg text-sm relative group text-left"
-              >
-                <span className="font-semibold">{t.person_name || t.name}</span>
-                {(t.person_role || t.role) && (
-                  <span className="text-muted-foreground text-xs ml-1">
-                    ({t.person_role || t.role})
-                  </span>
-                )}
-                : &ldquo;{t.comment || t.text}&rdquo;
-              </div>
-            ))}
-
-            {!expandedTestimonials && rest.testimonials.length > 2 && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="w-full text-xs mt-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setExpandedTestimonials(true);
-                }}
-              >
-                View More ({rest.testimonials.length - 2})
-              </Button>
-            )}
-            {expandedTestimonials && rest.testimonials.length > 2 && (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                className="w-full text-xs mt-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setExpandedTestimonials(false);
-                }}
-              >
-                Show Less
-              </Button>
-            )}
-          </div>
-        ) : (
-          <p className="text-muted-foreground text-sm">No Testimonials yet</p>
-        )}
       </div>
     </div>
   );
@@ -205,11 +213,11 @@ export default function ProjectCard({
             )}
           </div>
 
-          <h3 className="text-lg font-semibold text-card-foreground truncate">
+          <h3 className="text-lg font-semibold text-card-foreground truncate" dir="auto">
             {title}
           </h3>
 
-          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground min-h-[46px]">
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground min-h-[46px]" dir="auto">
             {description || " "}
           </p>
 
@@ -219,6 +227,7 @@ export default function ProjectCard({
                 <span
                   key={idx}
                   className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded font-medium uppercase tracking-wider truncate shrink-0 max-w-[80px]"
+                  dir="auto"
                 >
                   {tag}
                 </span>
