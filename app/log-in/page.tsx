@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertCircle, Eye, EyeOff, Loader2, Router } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { login } from "./actions";
@@ -23,8 +23,6 @@ export default function Login() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
 
-  const router = useRouter();
-
   // Show server-side feedback as toasts
   useEffect(() => {
     if (message) toast.success(message);
@@ -32,7 +30,6 @@ export default function Login() {
 
   useEffect(() => {
     if (state.error) toast.error(state.error);
-    else router.push("/dashboard");
   }, [state.error]);
 
   // Client-side validation

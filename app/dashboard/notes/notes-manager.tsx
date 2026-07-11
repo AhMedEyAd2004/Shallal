@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -23,21 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+import { DrawerClose } from "@/components/ui/drawer";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -45,6 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { ResponsiveDrawer } from "@/components/custom/responsiveDrawer";
 
 // Native formatting
 function formatDeadline(dateString?: string) {
@@ -88,60 +75,17 @@ function priorityGradient(priority: string) {
   }
 }
 
-// Dialog/Drawer Wrapper
-function ResponsiveNoteDialog({
-  title,
-  children,
-  trigger,
-  open,
-  setOpen,
-}: {
-  title: string;
-  children: React.ReactNode;
-  trigger: React.ReactNode;
-  open: boolean;
-  setOpen: (v: boolean) => void;
-}) {
-  const isDesktop = useMediaQuery("(min-width: 768px)");
-
-  if (isDesktop) {
-    return (
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
-          <div className="pt-2">{children}</div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="text-left">
-          <DrawerTitle>{title}</DrawerTitle>
-        </DrawerHeader>
-        <div className="px-4 pb-8 overflow-y-auto max-h-[85vh]">{children}</div>
-      </DrawerContent>
-    </Drawer>
-  );
-}
-
 // Separate component for the form so it can hold DatePicker state
 function NoteForm({
   note,
   onSubmitAction,
-  onCancel,
   isPending,
+  closeRef,
 }: {
   note?: any;
   onSubmitAction: (formData: FormData) => void;
-  onCancel?: () => void;
   isPending: boolean;
+  closeRef: React.RefObject<HTMLButtonElement | null>;
 }) {
   const [date, setDate] = useState<Date | undefined>(
     note?.deadline ? new Date(note.deadline) : undefined,
@@ -228,17 +172,25 @@ function NoteForm({
       </div>
 
       <div className="flex justify-between items-center pt-6 border-t mt-8">
-        {onCancel ? (
-          <Button type="button" variant="ghost" onClick={onCancel}>
+        <DrawerClose asChild>
+          <Button type="button" variant="ghost">
             Cancel
           </Button>
-        ) : (
-          <div />
-        )}
+        </DrawerClose>
         <Button type="submit" disabled={isPending} className="px-8">
           {note ? "Save Changes" : "Create Note"}
         </Button>
       </div>
+      {/* Hidden trigger clicked programmatically to close the drawer after a successful submit */}
+      <DrawerClose asChild>
+        <button
+          ref={closeRef}
+          type="button"
+          className="hidden"
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+      </DrawerClose>
     </form>
   );
 }
@@ -286,12 +238,8 @@ function NoteView({ note }: { note: any }) {
 
 export function NotesManager({ notes }: { notes: any[] }) {
   const [search, setSearch] = useState("");
-  const [isPending, startTransition] = useTransition();
-
-  // Track dialog open states individually
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editOpenId, setEditOpenId] = useState<string | null>(null);
-  const [viewOpenId, setViewOpenId] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+  const createCloseRef = useRef<HTMLButtonElement>(null);
 
   const filteredNotes = notes.filter((n) => {
     if (!search) return true;
@@ -304,14 +252,14 @@ export function NotesManager({ notes }: { notes: any[] }) {
   const handleAction = async (
     actionFn: () => Promise<any>,
     successText?: string,
-    closeDialog?: () => void,
+    closeRef?: React.RefObject<HTMLButtonElement | null>,
   ) => {
     const result = await actionFn();
     if (result?.error) {
       toast.error(result.error);
     } else if (result?.success) {
       if (successText) toast.success(successText);
-      if (closeDialog) closeDialog();
+      closeRef?.current?.click();
     }
   };
 
@@ -332,30 +280,30 @@ export function NotesManager({ notes }: { notes: any[] }) {
             />
           </div>
 
-          <ResponsiveNoteDialog
+          <ResponsiveDrawer
             title="Create New Note"
-            open={createOpen}
-            setOpen={setCreateOpen}
-            trigger={
-              <Button className="shrink-0 gap-2">
-                <Plus className="h-4 w-4" /> Add Note
-              </Button>
+            content={
+              <NoteForm
+                onSubmitAction={(formData) =>
+                  (async () => {
+                    setIsPending(true);
+                    await handleAction(
+                      () => addNoteAction(formData),
+                      "Note created successfully!",
+                      createCloseRef,
+                    );
+                    setIsPending(false);
+                  })()
+                }
+                isPending={isPending}
+                closeRef={createCloseRef}
+              />
             }
           >
-            <NoteForm
-              onSubmitAction={(formData) =>
-                startTransition(() =>
-                  handleAction(
-                    () => addNoteAction(formData),
-                    "Note created successfully!",
-                    () => setCreateOpen(false),
-                  ),
-                )
-              }
-              onCancel={() => setCreateOpen(false)}
-              isPending={isPending}
-            />
-          </ResponsiveNoteDialog>
+            <Button className="shrink-0 gap-2">
+              <Plus className="h-4 w-4" /> Add Note
+            </Button>
+          </ResponsiveDrawer>
         </div>
       </div>
 
@@ -367,123 +315,130 @@ export function NotesManager({ notes }: { notes: any[] }) {
               : "No notes yet. Click 'Add Note' to create one."}
           </div>
         ) : (
-          filteredNotes.map((note) => {
-            return (
-              <div
-                key={note.id}
-                className="group relative flex flex-col gap-3 p-5 border border-border rounded-xl hover:shadow-lg transition-all bg-card h-[280px] overflow-hidden"
-              >
-                {/* Priority gradient, sits behind everything */}
-                <div
-                  aria-hidden
-                  className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${priorityGradient(note.priority)}`}
-                  style={{
-                    backgroundSize: "100% 220%",
-                    backgroundPosition: "top",
-                  }}
-                />
-
-                <div className="relative z-10 flex flex-col gap-3 h-full">
-                  <div className="flex justify-between items-start gap-2">
-                    <h3
-                      className="font-semibold text-base line-clamp-2"
-                      dir="auto"
-                    >
-                      {note.title}
-                    </h3>
-                    <PriorityBadge priority={note.priority} />
-                  </div>
-
-                  <p
-                    className="text-sm text-muted-foreground leading-relaxed line-clamp-4 flex-1 whitespace-pre-wrap"
-                    dir="auto"
-                  >
-                    {note.description || "No description provided."}
-                  </p>
-
-                  <div className="space-y-3 mt-auto pt-4 border-t border-border/50">
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                      <CalendarIcon className="w-3.5 h-3.5" />
-                      <span>{formatDeadline(note.deadline)}</span>
-                    </div>
-
-                    <div className="flex justify-end items-center gap-2">
-                      <div className="flex items-center gap-1 shrink-0">
-                        <ResponsiveNoteDialog
-                          title="Note Details"
-                          open={viewOpenId === note.id}
-                          setOpen={(open) =>
-                            setViewOpenId(open ? note.id : null)
-                          }
-                          trigger={
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 bg-muted/50 hover:bg-primary hover:text-primary-foreground "
-                            >
-                              <Eye className="h-3 w-3" />
-                            </Button>
-                          }
-                        >
-                          <NoteView note={note} />
-                        </ResponsiveNoteDialog>
-
-                        <ResponsiveNoteDialog
-                          title="Edit Note"
-                          open={editOpenId === note.id}
-                          setOpen={(open) =>
-                            setEditOpenId(open ? note.id : null)
-                          }
-                          trigger={
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-7 w-7 bg-muted/50 hover:bg-primary hover:text-primary-foreground "
-                            >
-                              <Pen className="h-3 w-3" />
-                            </Button>
-                          }
-                        >
-                          <NoteForm
-                            note={note}
-                            onSubmitAction={(formData) =>
-                              startTransition(() =>
-                                handleAction(
-                                  () => updateNoteAction(note.id, formData),
-                                  "Note updated successfully!",
-                                  () => setEditOpenId(null),
-                                ),
-                              )
-                            }
-                            onCancel={() => setEditOpenId(null)}
-                            isPending={isPending}
-                          />
-                        </ResponsiveNoteDialog>
-
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-7 w-7 text-destructive bg-destructive/10 hover:bg-destructive hover:text-destructive-foreground "
-                          onClick={() =>
-                            startTransition(() =>
-                              handleAction(
-                                () => deleteNoteAction(note.id),
-                                "Note deleted.",
-                              ),
-                            )
-                          }
-                          disabled={isPending}
-                        >
-                          <Trash className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          filteredNotes.map((note) => (
+            <NoteCard key={note.id} note={note} handleAction={handleAction} />
+          ))
         )}
+      </div>
+    </div>
+  );
+}
+
+// One card per note — keeps its own pending state + close-refs for its edit drawer,
+// so opening/closing one note's drawers never touches another's.
+function NoteCard({
+  note,
+  handleAction,
+}: {
+  note: any;
+  handleAction: (
+    actionFn: () => Promise<any>,
+    successText?: string,
+    closeRef?: React.RefObject<HTMLButtonElement | null>,
+  ) => Promise<void>;
+}) {
+  const [isPending, setIsPending] = useState(false);
+  const editCloseRef = useRef<HTMLButtonElement>(null);
+
+  return (
+    <div className="group relative flex flex-col gap-3 p-5 border border-border rounded-xl hover:shadow-lg transition-all bg-card h-[280px] overflow-hidden">
+      {/* Priority gradient, sits behind everything */}
+      <div
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${priorityGradient(note.priority)}`}
+        style={{
+          backgroundSize: "100% 220%",
+          backgroundPosition: "top",
+        }}
+      />
+
+      <div className="relative z-10 flex flex-col gap-3 h-full">
+        <div className="flex justify-between items-start gap-2">
+          <h3 className="font-semibold text-base line-clamp-2" dir="auto">
+            {note.title}
+          </h3>
+          <PriorityBadge priority={note.priority} />
+        </div>
+
+        <p
+          className="text-sm text-muted-foreground leading-relaxed line-clamp-4 flex-1 whitespace-pre-wrap"
+          dir="auto"
+        >
+          {note.description || "No description provided."}
+        </p>
+
+        <div className="space-y-3 mt-auto pt-4 border-t border-border/50">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <CalendarIcon className="w-3.5 h-3.5" />
+            <span>{formatDeadline(note.deadline)}</span>
+          </div>
+
+          <div className="flex justify-end items-center gap-2">
+            <div className="flex items-center gap-1 shrink-0">
+              <ResponsiveDrawer
+                title="Note Details"
+                content={<NoteView note={note} />}
+              >
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 bg-muted/50 hover:bg-primary hover:text-primary-foreground "
+                >
+                  <Eye className="h-3 w-3" />
+                </Button>
+              </ResponsiveDrawer>
+
+              <ResponsiveDrawer
+                title="Edit Note"
+                content={
+                  <NoteForm
+                    note={note}
+                    onSubmitAction={(formData) =>
+                      (async () => {
+                        setIsPending(true);
+                        await handleAction(
+                          () => updateNoteAction(note.id, formData),
+                          "Note updated successfully!",
+                          editCloseRef,
+                        );
+                        setIsPending(false);
+                      })()
+                    }
+                    isPending={isPending}
+                    closeRef={editCloseRef}
+                  />
+                }
+              >
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 bg-muted/50 hover:bg-primary hover:text-primary-foreground "
+                >
+                  <Pen className="h-3 w-3" />
+                </Button>
+              </ResponsiveDrawer>
+
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 text-destructive bg-destructive/10 hover:bg-destructive hover:text-destructive-foreground "
+                onClick={() =>
+                  (async () => {
+                    setIsPending(true);
+                    await handleAction(
+                      () => deleteNoteAction(note.id),
+                      "Note deleted.",
+                    );
+                    setIsPending(false);
+                  })()
+                }
+                disabled={isPending}
+              >
+                <Trash className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

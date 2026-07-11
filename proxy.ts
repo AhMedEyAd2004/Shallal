@@ -42,7 +42,7 @@ export default async function proxy(request: NextRequest) {
   const isSetPasswordPage = pathname === "/set-password";
 
   // Dashboard routes require authentication, except for the set-password page
-  const isProtected = pathname.startsWith("/dashboard") ;
+  const isProtected = pathname.startsWith("/dashboard");
 
   // Unauthenticated user trying to access a protected page
   if (!user && isProtected) {

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/server";
+import { redirect } from "next/navigation";
 
 export type LoginState = {
   error?: string;
@@ -47,5 +48,8 @@ export async function login(
     return { error: error.message };
   }
 
-  return { error: undefined };
+  // Redirect here, in the same request/response cycle that sets the auth
+  // cookie — avoids the client-side race where a client-triggered navigation
+  // can reach middleware before the cookie has actually propagated.
+  redirect("/dashboard/manage-data");
 }

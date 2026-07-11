@@ -1,30 +1,28 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { inviteUserByEmailAction } from "@/app/dashboard/actions";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/client";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { LogOut, Mail, UserPlus, ChevronDown, Loader2 } from "lucide-react";
-import {
-  signOutAction,
-  inviteUserByEmailAction,
-} from "@/app/dashboard/actions";
+import { Input } from "@/components/ui/input";
+import { createClient } from "@/lib/client";
+import { ChevronDown, Loader2, LogOut, Mail, UserPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 
 type UserProfileDropdownProps = {
   email: string;
@@ -38,6 +36,7 @@ export function UserProfileDropdown({
   // Split into independent transition states
   const [isLoggingOut, startSignOutTransition] = useTransition();
   const [isInviting, startInviteTransition] = useTransition();
+  const router = useRouter();
 
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -52,7 +51,7 @@ export function UserProfileDropdown({
     startSignOutTransition(async () => {
       const supabase = createClient();
       await supabase.auth.signOut();
-      await signOutAction();
+      router.push("/log-in");
     });
   };
 
