@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/server";
-// import { NotesManager } from "./notes-manager";
+import { NotesManager } from "./notes-manager";
 import { redirect } from "next/navigation";
 
 export const metadata = {
@@ -22,7 +22,7 @@ export default async function NotesPage() {
   const { data: notes, error } = await supabase
     .from("notes")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("updated_at", { ascending: false });
 
   if (error) {
     console.error("Error fetching notes:", error);
@@ -30,8 +30,7 @@ export default async function NotesPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      {/* <NotesManager notes={notes || []} /> */}
-      work in progress
+      <NotesManager notes={notes || []} />
     </div>
   );
 }

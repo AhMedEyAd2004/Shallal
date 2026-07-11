@@ -167,12 +167,8 @@ export default function Header() {
               ...(user
                 ? [
                     {
-                      label: "Manage Data",
-                      link: "/dashboard/manage-data",
-                    },
-                    {
-                      label: "Manage PDFs",
-                      link: "/dashboard/create-pdf",
+                      label: "Dashboard",
+                      link: "/dashboard",
                     },
                   ]
                 : []),

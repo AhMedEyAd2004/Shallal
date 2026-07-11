@@ -49,7 +49,7 @@ export function MobileMenu({ email, createdAt }: MobileMenuProps) {
   const navItems = [
     { label: "Home", href: "/home" },
     { label: "Manage Data", href: "/dashboard/manage-data" },
-    { label: "Manage PDFs", href: "/dashboard/create-pdf" },
+    { label: "PDFs", href: "/dashboard/pdfs" },
     { label: "Notes", href: "/dashboard/notes" },
   ];
 

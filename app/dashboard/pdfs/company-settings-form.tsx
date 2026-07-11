@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { ImageIcon, X } from "lucide-react";
 
 interface CompanySettingsFormProps {
-  initialSettings: CompanySettings;
-  onSave: (settings: CompanySettings) => void;
+  value: CompanySettings;
+  onChange: (settings: CompanySettings) => void;
 }
 
 // Same fallback used in default-company-settings.ts — treated as "no logo set yet".
@@ -168,33 +168,15 @@ function LogoUploader({
 }
 
 export function CompanySettingsForm({
-  initialSettings,
-  onSave,
+  value,
+  onChange,
 }: CompanySettingsFormProps) {
-  const [values, setValues] = useState(initialSettings);
-  const [savedAt, setSavedAt] = useState<number | null>(null);
-
-  function updateField(key: keyof CompanySettings, value: string) {
-    setValues((prev) => ({ ...prev, [key]: value }));
-    setSavedAt(null);
-  }
-
-  function handleSave() {
-    onSave(values);
-    setSavedAt(Date.now());
+  function updateField(key: keyof CompanySettings, val: string) {
+    onChange({ ...value, [key]: val });
   }
 
   return (
-    <div className="w-full relative px-1 flex flex-col h-full">
-      {/* Save */}
-      <div className=" absolute top-0 right-0 -translate-y-1/2 md:-translate-y-full flex items-center gap-3">
-        <Button type="button" onClick={handleSave}>
-          Save Settings
-        </Button>
-        {savedAt && (
-          <span className="text-xs text-green-600 font-medium">✓ Saved</span>
-        )}
-      </div>
+    <div className="w-full px-1 flex flex-col">
       {/* Company Info */}
       <div className="mb-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4">
@@ -208,7 +190,7 @@ export function CompanySettingsForm({
                 id={key}
                 type={type ?? "text"}
                 placeholder={placeholder}
-                value={values[key]}
+                value={value[key]}
                 onChange={(e) => updateField(key, e.target.value)}
               />
             </div>
@@ -216,7 +198,7 @@ export function CompanySettingsForm({
         </div>
 
         <LogoUploader
-          value={values.logo}
+          value={value.logo}
           onChange={(url) => updateField("logo", url)}
         />
       </div>
@@ -237,7 +219,7 @@ export function CompanySettingsForm({
                 dir="auto"
                 type={type ?? "text"}
                 placeholder={placeholder}
-                value={values[key]}
+                value={value[key]}
                 onChange={(e) => updateField(key, e.target.value)}
               />
             </div>

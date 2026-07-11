@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DocumentData, CompanySettings } from "./pdf";
 import { CompanySettingsForm } from "./company-settings-form";
 import { PdfPreview } from "./pdf-preview";
@@ -15,7 +15,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Plus, ArrowLeft, Settings, RefreshCw } from "lucide-react";
+import { Plus, ArrowLeft, Settings, RefreshCw, Pencil } from "lucide-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 const INITIAL_DOCUMENT_DATA: DocumentData = {
@@ -36,16 +36,40 @@ export default function PdfCreatorDashboard() {
   const [documentCompany, setDocumentCompany] =
     useState<CompanySettings | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  // Draft copy edited inside the settings drawer; only committed to
+  // `settings` when Save is pressed. Seeded fresh from `settings` each time
+  // the drawer opens (see effect below).
+  const [companyDraft, setCompanyDraft] = useState<CompanySettings | null>(
+    null,
+  );
+  const [settingsSavedAt, setSettingsSavedAt] = useState<number | null>(null);
+  // Cards open in read-only "View" mode; the Edit button flips this off.
+  const [readOnly, setReadOnly] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
+
+  useEffect(() => {
+    if (isSettingsOpen) {
+      setCompanyDraft(settings);
+      setSettingsSavedAt(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSettingsOpen]);
 
   if (!isLoaded) return null;
 
   const activeCompany = documentCompany || settings;
 
+  function handleSaveCompanySettings() {
+    if (!companyDraft) return;
+    saveSettings(companyDraft);
+    setSettingsSavedAt(Date.now());
+  }
+
   function handleCreateNew() {
     setDocumentData(INITIAL_DOCUMENT_DATA);
     setEditingId(null);
     setDocumentCompany(null);
+    setReadOnly(false);
     setView("document");
   }
 
@@ -55,14 +79,26 @@ export default function PdfCreatorDashboard() {
         <h1 className="text-xl sm:text-2xl font-bold truncate">
           {view === "existing"
             ? "PDF Documents"
-            : editingId
-              ? "Edit PDF"
-              : "Create New PDF"}
+            : readOnly
+              ? "View PDF"
+              : editingId
+                ? "Edit PDF"
+                : "Create New PDF"}
         </h1>
         <div className="flex items-center gap-2 flex-wrap">
           {view === "document" && (
             <>
-              {documentCompany && (
+              {readOnly && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setReadOnly(false)}
+                  className="gap-2"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Edit
+                </Button>
+              )}
+              {!readOnly && documentCompany && (
                 <Button
                   variant="secondary"
                   onClick={() => setDocumentCompany(null)}
@@ -97,18 +133,18 @@ export default function PdfCreatorDashboard() {
             <DrawerContent
               className={
                 isDesktop
-                  ? "!w-screen !max-w-none rounded-none border-0 !top-16 !h-[calc(100vh-4rem)]"
-                  : "max-h-[95vh]"
+                  ? "!w-screen !max-w-none rounded-none border-0 !top-16 !h-[calc(100vh-4rem)] flex flex-col"
+                  : "max-h-[95vh] flex flex-col"
               }
             >
               <DrawerHeader
                 className={
                   isDesktop
-                    ? "max-w-screen-xl mx-auto w-full flex flex-row items-center gap-4"
-                    : ""
+                    ? "shrink-0 max-w-screen-xl mx-auto w-full flex flex-row items-center justify-between gap-4"
+                    : "shrink-0 flex flex-row items-center justify-between gap-3"
                 }
               >
-                {isDesktop && (
+                {isDesktop ? (
                   <Button
                     variant="ghost"
                     size="icon"
@@ -119,22 +155,35 @@ export default function PdfCreatorDashboard() {
                     <ArrowLeft className="h-5 w-5 " />
                     <DrawerTitle>Back</DrawerTitle>
                   </Button>
+                ) : (
+                  <DrawerTitle>Company Settings</DrawerTitle>
                 )}
+
+                <div className="flex items-center gap-3 mr-3">
+                  {settingsSavedAt && (
+                    <span className="text-xs text-green-600 font-medium">
+                      ✓ Saved
+                    </span>
+                  )}
+                  <Button type="button" onClick={handleSaveCompanySettings}>
+                    Save Settings
+                  </Button>
+                </div>
               </DrawerHeader>
+
               <div
                 className={
                   isDesktop
-                    ? "max-w-screen-xl mx-auto w-full p-4 md:py-0 sm:px-6 overflow-y-visibile"
-                    : "p-4 sm:p-6 overflow-y-auto"
+                    ? "flex-1 min-h-0 overflow-y-auto max-w-screen-xl mx-auto w-full p-4 md:pt-2 sm:px-6"
+                    : "flex-1 min-h-0 overflow-y-auto p-4 sm:p-6"
                 }
               >
-                <CompanySettingsForm
-                  initialSettings={settings}
-                  onSave={(newSettings) => {
-                    saveSettings(newSettings);
-                    setIsSettingsOpen(false);
-                  }}
-                />
+                {companyDraft && (
+                  <CompanySettingsForm
+                    value={companyDraft}
+                    onChange={setCompanyDraft}
+                  />
+                )}
               </div>
             </DrawerContent>
           </Drawer>
@@ -151,16 +200,17 @@ export default function PdfCreatorDashboard() {
       {view === "existing" ? (
         <div className="bg-card text-card-foreground border border-border rounded-2xl p-4 sm:p-6 shadow-sm">
           <ExistingPdfsPanel
-            onEdit={(doc) => {
+            onView={(doc) => {
               setDocumentData({
                 title: doc.title || "",
                 client: doc.client || { name: "", phone: "", email: "" },
                 tags: doc.tags || [],
                 pages: doc.pages || [[""]],
-                content: "", // add this
+                content: "",
               });
               setDocumentCompany(doc.company_snapshot || null);
               setEditingId(doc.id);
+              setReadOnly(true);
               setView("document");
             }}
           />
@@ -173,6 +223,7 @@ export default function PdfCreatorDashboard() {
             <DocumentFormPanel
               initialData={documentData}
               onChange={setDocumentData}
+              readOnly={readOnly}
             />
           </div>
 
@@ -183,6 +234,7 @@ export default function PdfCreatorDashboard() {
               data={documentData}
               editingId={editingId}
               setEditingId={setEditingId}
+              readOnly={readOnly}
             />
           </div>
         </div>

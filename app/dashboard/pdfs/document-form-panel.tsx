@@ -32,11 +32,13 @@ const DEBOUNCE_MS = 600;
 interface DocumentFormPanelProps {
   initialData: DocumentData;
   onChange: (data: DocumentData) => void;
+  readOnly?: boolean;
 }
 
 export function DocumentFormPanel({
   initialData,
   onChange,
+  readOnly = false,
 }: DocumentFormPanelProps) {
   const [formData, setFormData] = useState<DocumentData>(() => ({
     ...initialData,
@@ -330,6 +332,7 @@ export function DocumentFormPanel({
             <Input
               id="title"
               dir="auto"
+              readOnly={readOnly}
               placeholder="مثال: عرض سعر المشروع — مايو 2025"
               value={formData.title}
               onChange={(e) => updateField("title", e.target.value)}
@@ -342,6 +345,7 @@ export function DocumentFormPanel({
             <Input
               id="tags"
               dir="auto"
+              readOnly={readOnly}
               placeholder="VIP مثال: عاجل، عميل"
               value={tagsText}
               onChange={(e) => handleTagsTextChange(e.target.value)}
@@ -369,6 +373,7 @@ export function DocumentFormPanel({
             <Input
               id="client-name"
               dir="auto"
+              readOnly={readOnly}
               placeholder="اسم العميل الكامل"
               value={formData.client.name}
               onChange={(e) => updateClientField("name", e.target.value)}
@@ -384,6 +389,7 @@ export function DocumentFormPanel({
             <Input
               id="client-phone"
               dir="auto"
+              readOnly={readOnly}
               placeholder="+20 100 000 0000"
               type="tel"
               value={formData.client.phone}
@@ -400,6 +406,7 @@ export function DocumentFormPanel({
             <Input
               id="client-email"
               dir="auto"
+              readOnly={readOnly}
               placeholder="client@email.com"
               type="email"
               value={formData.client.email}
@@ -415,16 +422,18 @@ export function DocumentFormPanel({
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
             Document Template Builder
           </h3>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="text-xs h-8 gap-1"
-            onClick={handleAddPage}
-          >
-            <FilePlus className="w-3.5 h-3.5" />
-            Add New Page
-          </Button>
+          {!readOnly && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-8 gap-1"
+              onClick={handleAddPage}
+            >
+              <FilePlus className="w-3.5 h-3.5" />
+              Add New Page
+            </Button>
+          )}
         </div>
 
         <div className="flex flex-col gap-6 pb-5 overflow-y-auto max-h-[500px] pr-1">
@@ -437,7 +446,7 @@ export function DocumentFormPanel({
                 <span className="text-xs font-bold text-foreground bg-secondary px-2.5 py-1 rounded-md">
                   PAGE
                 </span>
-                {pageIdx > 0 && (
+                {!readOnly && pageIdx > 0 && (
                   <Button
                     type="button"
                     variant="ghost"
@@ -462,7 +471,7 @@ export function DocumentFormPanel({
                         <Label className="text-xs text-muted-foreground font-medium">
                           Content Block #{blockIdx + 1}
                         </Label>
-                        {blocks.length > 1 && (
+                        {!readOnly && blocks.length > 1 && (
                           <Button
                             type="button"
                             variant="ghost"
@@ -489,12 +498,13 @@ export function DocumentFormPanel({
                         </style>
                         <DynamicQuill
                           theme="snow"
+                          readOnly={readOnly}
                           defaultValue={
                             blockContent.startsWith('{"ops"')
                               ? JSON.parse(blockContent)
                               : blockContent
                           }
-                          modules={quillModules}
+                          modules={readOnly ? { toolbar: false } : quillModules}
                           formats={quillFormats}
                           placeholder="Type separate chunk description details…"
                           onChange={(
@@ -515,16 +525,18 @@ export function DocumentFormPanel({
                         />
                       </div>
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      title="Add Content Block"
-                      className="h-8 rounded-full text-xs gap-1 mt-2"
-                      onClick={() => handleAddBlock(pageIdx, blockIdx)}
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
+                    {!readOnly && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        title="Add Content Block"
+                        className="h-8 rounded-full text-xs gap-1 mt-2"
+                        onClick={() => handleAddBlock(pageIdx, blockIdx)}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>

@@ -1,12 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { FileText, ExternalLink, Loader2, Search, Trash2, Edit2 } from "lucide-react";
-import { getPdfDocuments, deletePdfDocument, type StoredPdfDocument } from "./actions";
+import { FileText, Eye, Loader2, Search, Trash2 } from "lucide-react";
+import {
+  getPdfDocuments,
+  deletePdfDocument,
+  type StoredPdfDocument,
+} from "./actions";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function formatUpdatedAt(value: string) {
   const date = new Date(value);
@@ -26,15 +37,17 @@ function matchesQuery(doc: StoredPdfDocument, query: string) {
 }
 
 interface ExistingPdfsPanelProps {
-  onEdit?: (doc: StoredPdfDocument) => void;
+  onView?: (doc: StoredPdfDocument) => void;
 }
 
-export function ExistingPdfsPanel({ onEdit }: ExistingPdfsPanelProps) {
+export function ExistingPdfsPanel({ onView }: ExistingPdfsPanelProps) {
   const [documents, setDocuments] = useState<StoredPdfDocument[] | null>(null);
   const [error, setError] = useState(false);
   const [query, setQuery] = useState("");
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<StoredPdfDocument | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<StoredPdfDocument | null>(
+    null,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -125,7 +138,7 @@ export function ExistingPdfsPanel({ onEdit }: ExistingPdfsPanelProps) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold" dir="auto">
-                    {doc.title || doc.filename}
+                    {doc.title || "Untitled document"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {formatUpdatedAt(doc.updated_at)}
@@ -155,62 +168,61 @@ export function ExistingPdfsPanel({ onEdit }: ExistingPdfsPanelProps) {
               )}
 
               <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/50">
-                <div className="flex items-center gap-1">
-                  {onEdit && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                      onClick={() => onEdit(doc)}
-                      title="Edit Document"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => setItemToDelete(doc)}
-                    disabled={isDeleting === doc.id}
-                    title="Delete Document"
-                  >
-                    {isDeleting === doc.id ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                  </Button>
-                </div>
-                <a
-                  href={doc.filepath}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-md hover:bg-accent hover:text-accent-foreground text-muted-foreground border border-transparent hover:border-border transition-colors"
-                  title="Open PDF"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 gap-1.5 px-2.5 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                  onClick={() => onView?.(doc)}
                 >
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <Eye className="h-4 w-4" />
                   View
-                </a>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setItemToDelete(doc)}
+                  disabled={isDeleting === doc.id}
+                  title="Delete Document"
+                >
+                  {isDeleting === doc.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      <Dialog open={!!itemToDelete} onOpenChange={(open) => !open && setItemToDelete(null)}>
+      <Dialog
+        open={!!itemToDelete}
+        onOpenChange={(open) => !open && setItemToDelete(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Document</DialogTitle>
             <DialogDescription dir="auto">
-              Are you sure you want to delete "{itemToDelete?.title || itemToDelete?.filename}"? This action cannot be undone.
+              Are you sure you want to delete "
+              {itemToDelete?.title || "this document"}"? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setItemToDelete(null)} disabled={!!isDeleting}>
+            <Button
+              variant="outline"
+              onClick={() => setItemToDelete(null)}
+              disabled={!!isDeleting}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete} disabled={!!isDeleting}>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={!!isDeleting}
+            >
               Delete
             </Button>
           </DialogFooter>

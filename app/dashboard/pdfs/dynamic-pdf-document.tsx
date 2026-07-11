@@ -482,26 +482,27 @@ export function DynamicPdfDocument({
       ? document.pages
       : [[document?.content || ""]];
 
+  const companyName = company?.companyName || "";
+
   return (
     <Document>
       {currentPages.map((blocks, pageIdx) => (
         <Page key={`page-${pageIdx}`} size="A4" style={pdfStyles.page}>
-          {/* Header: only on the first page */}
-          {pageIdx === 0 && (
-            <View style={pdfStyles.header}>
-              <View>
-                <Text style={pdfStyles.title}>
-                  {document?.title || "مستند"}
-                </Text>
-                <Text style={pdfStyles.companyNameSmall}>
-                  {company?.companyName || ""}
-                </Text>
-              </View>
-              {company?.logo && (
-                <Image src={company.logo} style={pdfStyles.logo} />
-              )}
+          {/* Watermark: company name, huge/semi-transparent/rotated,
+              repeated behind the content on every page. */}
+          {companyName && (
+            <View style={pdfStyles.watermarkContainer} fixed>
+              <Text style={[pdfStyles.watermarkText]}>{companyName}</Text>
             </View>
           )}
+
+          {/* Header: repeated on every page via react-pdf's `fixed` prop */}
+          <View style={pdfStyles.header} fixed>
+            <Text style={pdfStyles.title}>{document?.title || "مستند"}</Text>
+            {company?.logo && (
+              <Image src={company.logo} style={pdfStyles.logo} />
+            )}
+          </View>
 
           {/* Client info: only on the first page */}
           {pageIdx === 0 &&
@@ -563,47 +564,71 @@ export function DynamicPdfDocument({
             return renderDeltaBlock(blockContent, blockIdx);
           })}
 
-          {/* Footer: repeated on every page via react-pdf's `fixed` prop */}
-          <View style={pdfStyles.footer} fixed>
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-              {[company?.address, company?.phone, company?.email]
-                .filter(Boolean)
-                .map((field, i, arr) => (
-                  <React.Fragment key={i}>
-                    <Text style={pdfStyles.footerLine}>{field}</Text>
-                    {i < arr.length - 1 && (
-                      <Text style={pdfStyles.footerLine}>•</Text>
-                    )}
-                  </React.Fragment>
-                ))}
+          {/* Footer: re-declared per <Page> below (each page already gets
+              its own JSX from the .map), so this isn't relying on
+              react-pdf's `fixed`/`render` repeat-and-recompute machinery —
+              that API is for content flowing across an auto-`wrap`ped page,
+              which isn't what's happening here.
+              Left: company email, then "phone . address" below it.
+              Right: "manager name . manager phone", then manager email
+              below it. Page number badge centered between them.
+
+              Phone numbers are rendered in their own <Text>, sibling to
+              (not joined into the same string as) the Arabic name/address
+              text, inside a plain (non-reversed) row. That keeps them in
+              fixed source order regardless of script — no bidi reordering
+              of a "+" happens because no single Text node ever mixes
+              Arabic and Latin/number characters. */}
+          <View style={pdfStyles.footer}>
+            <View style={pdfStyles.footerSide}>
+              {company?.email && (
+                <Text style={pdfStyles.footerLine}>{company.email}</Text>
+              )}
+              {(company?.phone || company?.address) && (
+                <View style={pdfStyles.footerLineRow}>
+                  {company?.phone && (
+                    <Text style={[pdfStyles.footerLine, { marginBottom: 0 }]}>
+                      {company.phone}
+                    </Text>
+                  )}
+                  {company?.phone && company?.address && (
+                    <Text style={pdfStyles.footerLineSeparator}>•</Text>
+                  )}
+                  {company?.address && (
+                    <Text style={[pdfStyles.footerLine, { marginBottom: 0 }]}>
+                      {company.address}
+                    </Text>
+                  )}
+                </View>
+              )}
             </View>
 
-            {(company?.managerName ||
-              company?.managerPhone ||
-              company?.managerEmail) && (
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  gap: 6,
-                }}
-              >
-                {[
-                  company?.managerName,
-                  company?.managerPhone,
-                  company?.managerEmail,
-                ]
-                  .filter(Boolean)
-                  .map((field, i, arr) => (
-                    <React.Fragment key={i}>
-                      <Text style={pdfStyles.footerLine}>{field}</Text>
-                      {i < arr.length - 1 && (
-                        <Text style={pdfStyles.footerLine}>•</Text>
-                      )}
-                    </React.Fragment>
-                  ))}
-              </View>
-            )}
+            <View style={pdfStyles.pageNumberBadge}>
+              <Text style={pdfStyles.pageNumberText}>{pageIdx + 1}</Text>
+            </View>
+
+            <View style={pdfStyles.footerSideRight}>
+              {(company?.managerName || company?.managerPhone) && (
+                <View style={pdfStyles.footerLineRowReverse}>
+                  {company?.managerName && (
+                    <Text style={[pdfStyles.footerLine, { marginBottom: 0 }]}>
+                      {company.managerName}
+                    </Text>
+                  )}
+                  {company?.managerName && company?.managerPhone && (
+                    <Text style={pdfStyles.footerLineSeparator}>•</Text>
+                  )}
+                  {company?.managerPhone && (
+                    <Text style={[pdfStyles.footerLine, { marginBottom: 0 }]}>
+                      {company.managerPhone}
+                    </Text>
+                  )}
+                </View>
+              )}
+              {company?.managerEmail && (
+                <Text style={pdfStyles.footerLine}>{company.managerEmail}</Text>
+              )}
+            </View>
           </View>
         </Page>
       ))}
