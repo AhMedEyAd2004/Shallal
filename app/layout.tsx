@@ -16,6 +16,8 @@ const inter = Inter({
   display: "swap",
 });
 
+//next js commit bugged
+
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_WEBSITE_URL ?? "http://localhost:3000",
