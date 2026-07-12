@@ -61,7 +61,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000",
+    url: "./",
     title: "Shallal | Mobile & Web Management Systems",
     description:
       "Shallal is a software development company building custom mobile and web management systems for businesses and organizations.",
