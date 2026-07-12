@@ -16,8 +16,6 @@ const inter = Inter({
   display: "swap",
 });
 
-//next js commit bugged
-
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_WEBSITE_URL!),
   title: {
@@ -68,7 +66,7 @@ export const metadata: Metadata = {
     siteName: "Shallal Programming",
     images: [
       {
-        url: "/metaDataLogo.jpg",
+        url: "/metadataLogo.jpg",
         width: 1200,
         height: 630,
         alt: "Shallal Logo",
@@ -80,7 +78,7 @@ export const metadata: Metadata = {
     title: "Shallal | Mobile & Web Management Systems",
     description:
       "Shallal is a software development company building custom mobile and web management systems for businesses and organizations.",
-    images: ["/metaDataLogo.jpg"],
+    images: ["/metadataLogo.jpg"],
   },
   robots: {
     index: true,
