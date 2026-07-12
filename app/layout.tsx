@@ -19,9 +19,7 @@ const inter = Inter({
 //next js commit bugged
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_WEBSITE_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_WEBSITE_URL!),
   title: {
     template: "%s | Shallal",
     default: "Shallal | Mobile & Web Management Systems",
@@ -63,11 +61,11 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "./",
+    url: "/",
     title: "Shallal | Mobile & Web Management Systems",
     description:
       "Shallal is a software development company building custom mobile and web management systems for businesses and organizations.",
-    siteName: "Shallal",
+    siteName: "Shallal Programming",
     images: [
       {
         url: "/metaDataLogo.jpg",
@@ -83,11 +81,6 @@ export const metadata: Metadata = {
     description:
       "Shallal is a software development company building custom mobile and web management systems for businesses and organizations.",
     images: ["/metaDataLogo.jpg"],
-  },
-  icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
   },
   robots: {
     index: true,
