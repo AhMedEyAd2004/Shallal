@@ -22,7 +22,7 @@ export async function addNoteAction(formData: FormData) {
   });
 
   if (error) return { error: error.message };
-  
+
   updateTag("notes");
   return { success: true };
 }
@@ -58,7 +58,24 @@ export async function deleteNoteAction(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("notes").delete().eq("id", id);
   if (error) return { error: error.message };
-  
+
   updateTag("notes");
   return { success: true };
+}
+
+export async function deleteExpiredNotesAction() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("notes")
+    .delete()
+    .not("deadline", "is", null)
+    .lt("deadline", new Date().toISOString());
+
+  if (error) {
+    console.error("Error deleting expired notes:", error);
+  }
+
+  if (data && (data as any).length > 0) {
+    updateTag("notes");
+  }
 }

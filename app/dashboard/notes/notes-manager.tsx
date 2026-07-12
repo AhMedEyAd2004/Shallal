@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { ResponsiveDrawer } from "@/components/custom/responsiveDrawer";
+
+const REMINDER_STORAGE_KEY = "shallal-deadline-reminders-shown";
 
 function formatDeadline(dateString?: string) {
   if (!dateString) return "No deadline";
@@ -71,6 +73,72 @@ function priorityGradient(priority: string) {
       return "from-emerald-500/60 via-emerald-500/25 to-transparent dark:from-emerald-500/50 dark:via-emerald-500/20";
     default:
       return "from-muted-foreground/15 via-transparent to-transparent";
+  }
+}
+
+function priorityToastClasses(priority: string) {
+  switch (priority) {
+    case "high":
+      return "!bg-red-50 !border-red-300 !text-red-900 dark:!bg-red-950/90 dark:!border-red-800 dark:!text-red-200";
+    case "mid":
+      return "!bg-yellow-50 !border-yellow-300 !text-yellow-900 dark:!bg-yellow-950/90 dark:!border-yellow-800 dark:!text-yellow-200";
+    case "low":
+    default:
+      return "!bg-emerald-50 !border-emerald-300 !text-emerald-900 dark:!bg-emerald-950/90 dark:!border-emerald-800 dark:!text-emerald-200";
+  }
+}
+
+/**
+ * Fires a themed toast for any note that's past the halfway point
+ * between its creation and its deadline. Requires `created_at` and
+ * `deadline` on the note. Only shows a given note's reminder once per
+ * browser session so it doesn't nag on every remount/navigation.
+ */
+function showDeadlineReminders(notes: any[]) {
+  if (typeof window === "undefined") return;
+
+  let alreadyShown: string[] = [];
+  try {
+    alreadyShown = JSON.parse(
+      sessionStorage.getItem(REMINDER_STORAGE_KEY) || "[]",
+    );
+  } catch {
+    alreadyShown = [];
+  }
+
+  const now = Date.now();
+  const newlyShown: string[] = [];
+
+  notes.forEach((note) => {
+    if (!note.deadline || !note.created_at) return;
+    if (alreadyShown.includes(note.id)) return;
+
+    const created = new Date(note.created_at).getTime();
+    const deadline = new Date(note.deadline).getTime();
+    if (Number.isNaN(created) || Number.isNaN(deadline)) return;
+    if (deadline <= now) return; // expired notes get swept server-side
+
+    const midpoint = created + (deadline - created) / 2;
+    if (now < midpoint) return;
+
+    newlyShown.push(note.id);
+
+    toast(note.title, {
+      description: `Deadline coming up — ${formatDeadline(note.deadline)}`,
+      icon: <AlertCircle className="h-4 w-4" />,
+      className: cn("border font-medium", priorityToastClasses(note.priority)),
+    });
+  });
+
+  if (newlyShown.length) {
+    try {
+      sessionStorage.setItem(
+        REMINDER_STORAGE_KEY,
+        JSON.stringify([...alreadyShown, ...newlyShown]),
+      );
+    } catch {
+      // sessionStorage unavailable (private mode, etc.) — safe to ignore
+    }
   }
 }
 
@@ -170,11 +238,6 @@ function NoteForm({
       </div>
 
       <div className="flex justify-between items-center pt-6 border-t mt-8">
-        <DrawerClose asChild>
-          <Button type="button" variant="ghost">
-            Cancel
-          </Button>
-        </DrawerClose>
         <Button type="submit" disabled={isPending} className="px-8">
           {note ? "Save Changes" : "Create Note"}
         </Button>
@@ -236,6 +299,11 @@ export function NotesManager({ notes }: { notes: any[] }) {
   const [search, setSearch] = useState("");
   const [isPending, setIsPending] = useState(false);
   const createCloseRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    showDeadlineReminders(notes);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filteredNotes = notes.filter((n) => {
     if (!search) return true;
@@ -320,7 +388,6 @@ export function NotesManager({ notes }: { notes: any[] }) {
   );
 }
 
-
 function NoteCard({
   note,
   handleAction,
@@ -337,7 +404,6 @@ function NoteCard({
 
   return (
     <div className="group relative flex flex-col gap-3 p-5 border border-border rounded-xl hover:shadow-lg transition-all bg-card h-[280px] overflow-hidden">
-      {/* Priority gradient, sits behind everything */}
       <div
         aria-hidden
         className={`pointer-events-none absolute inset-0 bg-gradient-to-b ${priorityGradient(note.priority)}`}

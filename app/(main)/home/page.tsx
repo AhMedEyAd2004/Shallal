@@ -65,9 +65,11 @@ export default async function Home() {
   }));
 
   const phoneNumber =
-    socialLinks.find((s) => s.platform === "phone number")?.url_or_number || "";
+    socialLinks.find((s) => s.platform === "hero-btn-call")?.url_or_number ||
+    "";
   const whatsapp =
-    socialLinks.find((s) => s.platform === "whatsapp")?.url_or_number || "";
+    socialLinks.find((s) => s.platform === "hero-btn-whatsapp")
+      ?.url_or_number || "";
 
   const projects = dbProjects.map((p: any) => {
     const imagesArray = Array.isArray(p.images) ? p.images : [];
@@ -106,7 +108,7 @@ export default async function Home() {
   const companies = dbServices.map((s: any) => ({
     companyName: s.title,
     companyImage: s.company_image_url,
-    countryName: "", 
+    countryName: "",
     countryImage: s.country_image_url,
   }));
 

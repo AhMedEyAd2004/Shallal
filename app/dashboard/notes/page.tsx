@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/server";
 import { NotesManager } from "./notes-manager";
 import { redirect } from "next/navigation";
+import { deleteExpiredNotesAction } from "./actions";
 
 export const metadata = {
   title: "Notes - Shallal Admin",
@@ -17,11 +18,14 @@ export default async function NotesPage() {
     redirect("/login");
   }
 
- 
+  // Sweep expired notes before we read the list, so the user never sees
+  // a note whose deadline has already passed.
+  await deleteExpiredNotesAction();
+
   const { data: notes, error } = await supabase
     .from("notes")
     .select("*")
-    .order("updated_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   if (error) {
     console.error("Error fetching notes:", error);

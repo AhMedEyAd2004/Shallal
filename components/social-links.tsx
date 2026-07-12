@@ -172,7 +172,13 @@ interface SocialConfigEntry {
   label: string;
   icon: IconComponent;
   className: string;
-  getHref: (value: string) => string;
+  /**
+   * Only used to compute the VISIBLE text (username / number).
+   * Never used for the href — the href always uses the raw value
+   * exactly as entered. Falls back to the raw value if nothing
+   * is extractable.
+   */
+  getDisplayText: (value: string) => string;
 }
 
 type SocialConfigMap = {
@@ -184,20 +190,20 @@ export const SOCIAL_CONFIG: SocialConfigMap = {
     label: "WhatsApp",
     icon: WhatsappIcon,
     className: "text-foreground hover:underline",
-    getHref: (v) => {
-      const cleanUrl = v.replace(
+    getDisplayText: (v) => {
+      const cleaned = v.replace(
         /(https?:\/\/)?(www\.)?(wa\.me\/|api\.whatsapp\.com\/send\?phone=)/,
-        "",
+        "+",
       );
-      const digitsOnly = cleanUrl.replace(/[^0-9+]/g, "");
-      return digitsOnly.startsWith("+") ? digitsOnly : `+${digitsOnly}`;
+      const digitsOnly = cleaned.replace(/[^0-9+]/g, "");
+      return digitsOnly || v;
     },
   },
   facebook: {
     label: "Facebook",
     icon: FacebookIcon,
     className: "text-foreground hover:underline",
-    getHref: (v) => {
+    getDisplayText: (v) => {
       const match = v.match(
         /(?:https?:\/\/)?(?:www\.)?(?:facebook|fb)\.com\/([^/?#]+)/,
       );
@@ -208,7 +214,7 @@ export const SOCIAL_CONFIG: SocialConfigMap = {
     label: "Instagram",
     icon: InstagramIcon,
     className: "text-foreground hover:underline",
-    getHref: (v) => {
+    getDisplayText: (v) => {
       const match = v.match(
         /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([^/?#]+)/,
       );
@@ -218,9 +224,8 @@ export const SOCIAL_CONFIG: SocialConfigMap = {
   x: {
     label: "X",
     icon: XIcon,
-    className: " text-foreground hover:underline",
-    // Extracts username from ://x.com or ://twitter.com
-    getHref: (v) => {
+    className: "text-foreground hover:underline",
+    getDisplayText: (v) => {
       const match = v.match(
         /(?:https?:\/\/)?(?:www\.)?(?:x|twitter)\.com\/([^/?#]+)/,
       );
@@ -230,14 +235,18 @@ export const SOCIAL_CONFIG: SocialConfigMap = {
   phone_number: {
     label: "Call",
     icon: Phone,
-    className: " text-foreground hover:underline",
-    getHref: (v) => v.replace(/[^0-9+]/g, ""), // Cleans up spaces/dashes, leaves + for country codes
+    className: "text-foreground hover:underline",
+    getDisplayText: (v) => {
+      const digitsOnly = v.replace(/[^0-9+]/g, "");
+      return digitsOnly || v;
+    },
   },
   other: {
     label: "Link",
     icon: Globe,
-    className: " text-foreground hover:underline",
-    getHref: (v) => v,
+    className: "text-foreground hover:underline",
+    // Don't touch it — show exactly what was entered.
+    getDisplayText: (v) => v,
   },
 };
 
@@ -252,6 +261,10 @@ export interface RawSocialLink {
  * This handles platform strings with prefixes/suffixes like
  * "hero-btn-whatsapp", "footer_call_button", "phone number", etc.
  * Order matters: more specific keywords should come before generic ones.
+ *
+ * Reserved words "herobtnwhatsapp" and "herobtncall" resolve correctly
+ * without any special-casing: "herobtnwhatsapp" contains "whatsapp",
+ * and "herobtncall" contains "call".
  */
 const PLATFORM_KEYWORDS: Array<{
   platform: SocialPlatform;
@@ -298,32 +311,19 @@ function normalizePlatform(rawPlatform: string): SocialPlatform {
 }
 
 /**
- * Builds a real, clickable href for a given platform + raw value.
- * getHref() on SOCIAL_CONFIG only extracts the username/number —
- * this turns that into an actual working link.
+ * Builds the actual clickable href.
+ * - phone_number: strip everything except digits/+ and prefix with
+ *   "tel:" so the number becomes tap-to-call. This is the only
+ *   transformation applied; every other platform uses the raw value
+ *   exactly as the user entered it.
+ * - everything else: used as-is.
  */
 function buildHref(platform: SocialPlatform, rawValue: string): string {
-  const extracted = SOCIAL_CONFIG[platform].getHref(rawValue);
-
-  switch (platform) {
-    case "whatsapp":
-      return `https://wa.me/${extracted.replace("+", "")}`;
-    case "facebook":
-      return `https://facebook.com/${extracted}`;
-    case "instagram":
-      return `https://instagram.com/${extracted}`;
-    case "x":
-      return `https://x.com/${extracted}`;
-    case "phone_number":
-      return `tel:${extracted}`;
-    case "other":
-    default:
-      // Ensure "other" links are absolute so they don't resolve relative
-      // to the current page.
-      return /^https?:\/\//i.test(extracted)
-        ? extracted
-        : `https://${extracted}`;
+  if (platform === "phone_number") {
+    const digitsOnly = rawValue.replace(/[^0-9+]/g, "");
+    return `tel:${digitsOnly}`;
   }
+  return rawValue;
 }
 
 export function SocialLinks({
@@ -342,8 +342,8 @@ export function SocialLinks({
         const config = SOCIAL_CONFIG[platformKey];
         const Icon = config.icon;
         const isPhone = platformKey === "phone_number";
-        const displayText = config.getHref(link.url_or_number);
         const href = buildHref(platformKey, link.url_or_number);
+        const displayText = config.getDisplayText(link.url_or_number);
 
         return (
           <a

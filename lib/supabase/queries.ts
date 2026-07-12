@@ -26,8 +26,8 @@ export const getSocialLinks = unstable_cache(
     }
     return data;
   },
-  ["social-links"],
-  { tags: ["social-links"], revalidate: 86400 },
+  ["social_links"],
+  { tags: ["social_links"], revalidate: 86400 },
 );
 
 /**
