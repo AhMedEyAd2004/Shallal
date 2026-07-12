@@ -43,8 +43,6 @@ export const PdfPreview = React.memo(function PdfPreview({
     document: <DynamicPdfDocument company={company} document={data} />,
   });
 
-  // Mobile browsers don't reliably expose an inline PDF viewer, so preview
-  // is shown from "small laptop" width up; below that Download still works.
   const canShowPreview = useMediaQuery("(min-width: 1024px)");
 
   const isFirstRender = useRef(true);
@@ -52,7 +50,6 @@ export const PdfPreview = React.memo(function PdfPreview({
 
   useEffect(() => {
     if (isFirstRender.current) {
-      // Skip the mount render — usePDF already built this version for us.
       isFirstRender.current = false;
       return;
     }
@@ -70,7 +67,6 @@ export const PdfPreview = React.memo(function PdfPreview({
 
   const canDownload = !instance.loading && !instance.error && !!instance.url;
 
-  // --- Save to library: just persist the JSON, no upload step ---
   const [isSaving, setIsSaving] = useState(false);
 
   async function handleSaveToLibrary() {
@@ -110,7 +106,6 @@ export const PdfPreview = React.memo(function PdfPreview({
 
   return (
     <div className="w-full h-full flex flex-col bg-background">
-      {/* Top bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-2.5 border-b border-border bg-card shrink-0">
         <span className="text-sm font-medium text-muted-foreground">
           Preview
@@ -164,7 +159,6 @@ export const PdfPreview = React.memo(function PdfPreview({
         </div>
       </div>
 
-      {/* Preview body */}
       <div className="flex-1 min-h-0">
         {!canShowPreview ? (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-center px-6 text-sm text-muted-foreground">

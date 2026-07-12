@@ -15,7 +15,6 @@ export async function inviteUserByEmailAction(email: string) {
     return { error: "Email is required" };
   }
 
-  // inviteUserByEmail requires the service_role key (admin privileges)
   const supabaseAdmin = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,

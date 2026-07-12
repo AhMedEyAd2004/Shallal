@@ -206,7 +206,7 @@ export function CompaniesManager({ companies }: { companies: any[] }) {
 
               await addCompanyAction(formData);
               setSelectedCountry(null);
-              setCompanyImageUrl("/logo.png"); // Reset
+              setCompanyImageUrl("/logo.png"); 
               formRef.current?.reset();
             }}
             className="space-y-4"

@@ -17,8 +17,7 @@ export default async function NotesPage() {
     redirect("/login");
   }
 
-  // Ensure you've created the notes table via notes_schema.sql
-  // If the table doesn't exist, this will just return an empty array or an error.
+ 
   const { data: notes, error } = await supabase
     .from("notes")
     .select("*")

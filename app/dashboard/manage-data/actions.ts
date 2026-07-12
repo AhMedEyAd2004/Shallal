@@ -22,11 +22,9 @@ export async function deleteUploadThingFilesAction(urls: string[]) {
   return { success: true };
 }
 
-// PROJECTS
 export async function addProjectAction(formData: FormData) {
   const supabase = await createClient();
 
-  // Parse tags (comma separated)
   const tagsStr = formData.get("tags") as string;
   const tags = tagsStr ? tagsStr.split(",").map((t) => t.trim()) : [];
 
@@ -38,7 +36,6 @@ export async function addProjectAction(formData: FormData) {
 
   if (images.length === 0) images = ["/logo.png"];
 
-  // Parse links
   const linksStr = formData.get("links") as string;
   let links: ProjectLink[] = [];
   try {
@@ -61,18 +58,22 @@ export async function addProjectAction(formData: FormData) {
 
   if (error) return { error: error.message };
 
-  // Handle inline testimonial
-  const tName = formData.get("testi_person_name") as string;
-  const tRole = formData.get("testi_person_role") as string;
-  const tComment = formData.get("testi_comment") as string;
-  if (tName && tComment) {
-    await supabase.from("testimonials").insert({
-      project_id: proj.id,
-      person_name: tName,
-      person_role: tRole || "",
-      comment: tComment,
-      status: "approved",
-    });
+  const newTestimonialsStr = formData.get("new_testimonials") as string;
+  let newTestimonials: { name: string; role: string; comment: string }[] = [];
+  try {
+    if (newTestimonialsStr) newTestimonials = JSON.parse(newTestimonialsStr);
+  } catch (e) {}
+
+  if (newTestimonials.length > 0) {
+    await supabase.from("testimonials").insert(
+      newTestimonials.map((t) => ({
+        project_id: proj.id,
+        person_name: t.name,
+        person_role: t.role || "",
+        comment: t.comment,
+        status: "approved",
+      })),
+    );
     updateTag("testimonials");
   }
 
@@ -120,18 +121,22 @@ export async function updateProjectAction(id: string, formData: FormData) {
 
   if (error) return { error: error.message };
 
-  // Handle inline testimonial
-  const tName = formData.get("testi_person_name") as string;
-  const tRole = formData.get("testi_person_role") as string;
-  const tComment = formData.get("testi_comment") as string;
-  if (tName && tComment) {
-    await supabase.from("testimonials").insert({
-      project_id: id,
-      person_name: tName,
-      person_role: tRole || "",
-      comment: tComment,
-      status: "approved",
-    });
+  const newTestimonialsStr = formData.get("new_testimonials") as string;
+  let newTestimonials: { name: string; role: string; comment: string }[] = [];
+  try {
+    if (newTestimonialsStr) newTestimonials = JSON.parse(newTestimonialsStr);
+  } catch (e) {}
+
+  if (newTestimonials.length > 0) {
+    await supabase.from("testimonials").insert(
+      newTestimonials.map((t) => ({
+        project_id: id,
+        person_name: t.name,
+        person_role: t.role || "",
+        comment: t.comment,
+        status: "approved",
+      })),
+    );
     updateTag("testimonials");
   }
 
@@ -139,7 +144,31 @@ export async function updateProjectAction(id: string, formData: FormData) {
   return { success: true };
 }
 
-// TESTIMONIALS
+export async function getPaginatedProjectsAction(
+  page: number,
+  limit: number,
+  search: string = "",
+) {
+  const supabase = await createClient();
+  let query = supabase
+    .from("projects")
+    .select("*, testimonials(*)", { count: "exact" });
+
+  if (search) {
+    query = query.ilike("title", `%${search}%`);
+  }
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, count, error } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) return { error: error.message };
+  return { data, count };
+}
+
 export async function addTestimonialAction(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("testimonials").insert({
@@ -147,11 +176,11 @@ export async function addTestimonialAction(formData: FormData) {
     person_name: formData.get("person_name"),
     person_role: formData.get("person_role"),
     comment: formData.get("comment"),
-    status: formData.get("status") || "approved", // auto approve if created by admin
+    status: formData.get("status") || "approved",
   });
   if (error) return { error: error.message };
   updateTag("testimonials");
-  updateTag("projects"); // to refresh related project drawer
+  updateTag("projects");
   return { success: true };
 }
 
@@ -172,7 +201,6 @@ export async function deleteTestimonialAction(id: string) {
   updateTag("projects");
 }
 
-// SERVED COMPANIES
 export async function addCompanyAction(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("service_provided").insert({
@@ -193,7 +221,6 @@ export async function deleteCompanyAction(id: string) {
   updateTag("service_provided");
 }
 
-// SOCIAL LINKS
 export async function addSocialLinkAction(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("social_links").insert({

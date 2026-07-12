@@ -1,5 +1,6 @@
 "use client";
 
+import { RawSocialLink } from "@/components/social-links";
 import { ThemeToggle } from "@/components/static/theme-toggle";
 import { Button } from "@/components/ui/button";
 import HoverText from "@/gsap-wrappers/Button-animation-onHover";
@@ -12,7 +13,6 @@ import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { RawSocialLink } from "@/components/social-links";
 
 import { signOutAction } from "@/app/dashboard/actions";
 
@@ -21,9 +21,7 @@ type FooterAccountControlsProps = {
   createdAt?: string;
 };
 
-// Import your browser client builder
 import { MobileMenu } from "@/components/custom/MobileMenu";
-import { SOCIAL_PLATFORMS } from "@/components/social-links";
 import { createClient } from "@/lib/client";
 import type { User } from "@supabase/supabase-js";
 

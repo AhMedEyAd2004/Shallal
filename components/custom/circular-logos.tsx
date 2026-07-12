@@ -1,10 +1,7 @@
-// circular-logos.tsx
 import React from "react";
 
 export type Breakpoint = "sm" | "md" | "lg" | "xl" | "2xl";
 
-// `base` is required — it's the mobile-first fallback every other
-// breakpoint cascades from if not explicitly overridden
 export type ResponsiveAngle =
   | number
   | ({ base: number } & Partial<Record<Breakpoint, number>>);
@@ -20,10 +17,7 @@ interface CircularWrapperProps {
 
 const BREAKPOINTS: Breakpoint[] = ["sm", "md", "lg", "xl", "2xl"];
 
-// Static, always-present class list — required for Tailwind's JIT scanner to
-// pick it up. Only the --a-* custom property VALUES change at runtime (via
-// inline style), never the class names themselves. Each breakpoint falls
-// back to the nearest smaller one that's actually set.
+
 const ANGLE_VAR_CLASS =
   "[--a:var(--a-base)] " +
   "sm:[--a:var(--a-sm,var(--a-base))] " +

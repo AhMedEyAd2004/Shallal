@@ -1,13 +1,11 @@
 "use client";
 
+import { useGSAP } from "@gsap/react";
+import { gsap } from "gsap";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import Link from "next/link";
-import HoverText from "@/gsap-wrappers/Button-animation-onHover";
-import { Button } from "../ui/button";
-import { RawSocialLink, SOCIAL_PLATFORMS, SocialLinks } from "../social-links";
+import { RawSocialLink, SocialLinks } from "../social-links";
 
 gsap.registerPlugin(useGSAP);
 
@@ -17,12 +15,6 @@ export interface StaggeredMenuItem {
   ariaLabel?: string;
   className?: string;
 }
-
-// export interface StaggeredMenuSocialItem {
-//   id: string;
-//   platform: typeof SOCIAL_PLATFORMS;
-//   url_or_number: string;
-// }
 
 export interface StaggeredMenuProps {
   items: StaggeredMenuItem[];
@@ -37,7 +29,6 @@ export interface StaggeredMenuProps {
   onMenuOpen?: () => void;
   onMenuClose?: () => void;
   className?: string;
-  /** Pass a custom button/element to act as the trigger. Falls back to a default hamburger icon. */
   children?: React.ReactNode;
 }
 
@@ -78,7 +69,6 @@ export default function StaggeredMenu({
   // portal only mounts client-side
   useEffect(() => setMounted(true), []);
 
-  // initial state — panel/prelayers live in the portal, so this runs once panel refs exist
   useGSAP(
     () => {
       const panel = panelRef.current;
@@ -474,7 +464,7 @@ export default function StaggeredMenu({
                       {
                         <ul className="list-none m-0 p-0 py-2 flex bg-black/90 rounded-xl flex-row items-center gap-4 flex-wrap">
                           <SocialLinks
-                            className="[&_*]:shadow-none! "
+                            className="[&_*]:shadow-none! [&_*]:text-white!"
                             socialLinks={socialItems}
                           />
                         </ul>

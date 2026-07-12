@@ -18,7 +18,6 @@ export async function login(
   const email = (formData.get("email") as string)?.trim();
   const password = formData.get("password") as string;
 
-  // Server-side validation
   const fieldErrors: LoginState["fieldErrors"] = {};
 
   if (!email || !email.trim()) {
@@ -48,8 +47,5 @@ export async function login(
     return { error: error.message };
   }
 
-  // Redirect here, in the same request/response cycle that sets the auth
-  // cookie — avoids the client-side race where a client-triggered navigation
-  // can reach middleware before the cookie has actually propagated.
   redirect("/dashboard/manage-data");
 }

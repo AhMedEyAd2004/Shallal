@@ -66,7 +66,6 @@ export function ExistingPdfsPanel({ onView }: ExistingPdfsPanelProps) {
     };
   }, []);
 
-  // Server already orders by updated_at desc — this just narrows by query.
   const filtered = useMemo(
     () => (documents ?? []).filter((doc) => matchesQuery(doc, query)),
     [documents, query],

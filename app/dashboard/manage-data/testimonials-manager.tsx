@@ -9,12 +9,14 @@ import {
   ChevronLeft,
   ChevronRight,
   LinkIcon,
+  ExternalLink,
 } from "lucide-react";
 import {
   updateTestimonialStatusAction,
   deleteTestimonialAction,
 } from "./actions";
 import Link from "next/link";
+import { ProjectLinks } from "@/components/project-links";
 
 const PAGE_SIZE = 4;
 
@@ -30,8 +32,6 @@ export function TestimonialsManager({ testimonials }: { testimonials: any[] }) {
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE,
   );
-
-  console.log(testimonials);
 
   return (
     <div className="space-y-6">
@@ -56,7 +56,6 @@ export function TestimonialsManager({ testimonials }: { testimonials: any[] }) {
         {Array.from({ length: PAGE_SIZE }).map((_, i) => {
           const t = paginated[i];
 
-          // If no testimonial exists for this slot, render an invisible placeholder
           if (!t) {
             return (
               <div
@@ -103,24 +102,31 @@ export function TestimonialsManager({ testimonials }: { testimonials: any[] }) {
                 <p className="text-sm italic text-foreground/80 line-clamp-2">
                   &ldquo;{t.comment}&rdquo;
                 </p>
+
                 {t.links && t.links.length > 0 && (
-                  <div className="flex gap-3">
-                    {t.links.map((link: { url: string; title: string }) => (
-                      <Link
-                        key={link.url}
-                        href={link.url}
-                        className="text-sm flex gap-1 underline hover:text-muted-foreground transition-colors"
-                      >
-                        <LinkIcon className="size-4" />
-                        {link.title}
-                      </Link>
-                    ))}
+                  <div className="flex border-t-2 border-border pt-3 gap-2 items-center">
+                    <ProjectLinks links={t.links} />
                   </div>
                 )}
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 shrink-0">
+              <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+                {t.project_id && (
+                  <Link
+                    href={`/dashboard/manage-data/projects/${t.project_id}/view`}
+                  >
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5"
+                      title="Go to project"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Project
+                    </Button>
+                  </Link>
+                )}
                 {isVisible ? (
                   <Button
                     size="sm"

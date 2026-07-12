@@ -53,7 +53,7 @@ export function ResponsiveDrawer({
       <DrawerContent
         className={
           isDesktop
-            ? "!w-screen !max-w-none rounded-none border-0 !top-16 !h-[calc(100vh-4rem)] z-[110]"
+            ? "!w-screen !max-w-none rounded-none border-0 h-full z-[110]"
             : "data-[vaul-drawer-direction=bottom]:h-[95dvh] data-[vaul-drawer-direction=bottom]:max-h-[95dvh] z-[110]"
         }
       >

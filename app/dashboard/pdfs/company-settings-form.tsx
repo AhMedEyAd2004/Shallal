@@ -13,9 +13,8 @@ interface CompanySettingsFormProps {
   onChange: (settings: CompanySettings) => void;
 }
 
-// Same fallback used in default-company-settings.ts — treated as "no logo set yet".
 const DEFAULT_LOGO = "/logo.png";
-const MAX_LOGO_BYTES = 2 * 1024 * 1024; // 2MB — this gets base64-encoded into localStorage/JSON, so keep it small
+const MAX_LOGO_BYTES = 2 * 1024 * 1024; 
 
 const COMPANY_FIELDS: {
   key: keyof CompanySettings;
@@ -177,7 +176,6 @@ export function CompanySettingsForm({
 
   return (
     <div className="w-full px-1 flex flex-col">
-      {/* Company Info */}
       <div className="mb-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4">
           {COMPANY_FIELDS.map(({ key, label, placeholder, type }) => (
@@ -203,7 +201,6 @@ export function CompanySettingsForm({
         />
       </div>
 
-      {/* Manager Info */}
       <div className="mb-6">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
           Manager / Contact

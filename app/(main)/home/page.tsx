@@ -11,6 +11,12 @@ import {
   getServiceProvided,
   getSocialLinks,
 } from "@/lib/supabase/queries";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: "Welcome to Shallal's official portfolio and services.",
+};
 
 export interface ProjectLink {
   title: string;
@@ -44,7 +50,6 @@ export function normalizeLinksInput(raw: unknown): ProjectLink[] {
 }
 
 export default async function Home() {
-  // Fetch data in parallel
   const [dbProjects, dbTestimonials, dbServices, dbSocialLinks] =
     await Promise.all([
       getProjects(),
@@ -53,7 +58,6 @@ export default async function Home() {
       getSocialLinks(),
     ]);
 
-  // Map social links to expected shape
   const socialLinks: SocialLink[] = (dbSocialLinks ?? []).map((s: any) => ({
     id: String(s.id),
     platform: s.platform,
@@ -65,9 +69,7 @@ export default async function Home() {
   const whatsapp =
     socialLinks.find((s) => s.platform === "whatsapp")?.url_or_number || "";
 
-  // Map projects to expected props
   const projects = dbProjects.map((p: any) => {
-    // If images is an array, take the first one as main image
     const imagesArray = Array.isArray(p.images) ? p.images : [];
     const mainImage = imagesArray.length > 0 ? imagesArray[0] : undefined;
 
@@ -92,7 +94,6 @@ export default async function Home() {
     };
   });
 
-  // Map testimonials to expected props
   const testimonials = dbTestimonials?.map((t: any) => ({
     id: String(t.id),
     text: t.comment,
@@ -102,11 +103,10 @@ export default async function Home() {
     links: normalizeLinksInput(t.projects?.links),
   }));
 
-  // Map services to expected props
   const companies = dbServices.map((s: any) => ({
     companyName: s.title,
     companyImage: s.company_image_url,
-    countryName: "", // Add to DB schema if needed
+    countryName: "", 
     countryImage: s.country_image_url,
   }));
 

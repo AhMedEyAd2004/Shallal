@@ -23,12 +23,10 @@ export default function SetPasswordPage() {
     const parseAndCheckInvite = async () => {
       if (typeof window === "undefined") return;
 
-      // 1. Manually extract parameters from the full window.location.href string
       const fullUrl = new URL(window.location.href.replace("#", "?"));
       const accessToken = fullUrl.searchParams.get("access_token");
       const refreshToken = fullUrl.searchParams.get("refresh_token");
 
-      // 2. HARD SAFETY GATE: If no invitation hash variables are present, deny entry
       if (!accessToken || !refreshToken) {
         if (active) {
           router.replace("/log-in?error=unauthorized-access-attempt");
@@ -36,7 +34,6 @@ export default function SetPasswordPage() {
         return;
       }
 
-      // 3. SECURE RE-AUTHENTICATION: Force set the active session using the hash tokens
       const {
         data: { session },
         error: sessionError,
@@ -45,7 +42,6 @@ export default function SetPasswordPage() {
         refresh_token: refreshToken,
       });
 
-      console.log(session);
       if (!active) return;
 
       if (sessionError || !session) {
@@ -53,16 +49,13 @@ export default function SetPasswordPage() {
         return;
       }
 
-      // 4. FIXED CASING METADATA PROTECTION: Match the exact 'needs_Password' casing from your logs
       const needsPassword = session.user.user_metadata?.needs_Password;
 
       if (needsPassword !== true) {
-        // If false, they already made a password. Redirect them to data space.
         router.replace("/dashboard/manage-data");
         return;
       }
 
-      // 5. APPROVAL
       setEmail(session.user.email ?? null);
       setAllowed(true);
       setChecking(false);
@@ -85,11 +78,10 @@ export default function SetPasswordPage() {
 
     setLoading(true);
 
-    // 6. ATOMIC SAVE: Change password and turn needs_Password to false simultaneously
     const { error: updateError } = await supabase.auth.updateUser({
       password: password,
       data: {
-        needs_Password: false, // Disables this route portal permanently for this user
+        needs_Password: false,
       },
     });
 
@@ -142,7 +134,7 @@ export default function SetPasswordPage() {
               className="w-full rounded-md border border-input bg-transparent pl-3 pr-16 py-2 text-sm outline-none focus:border-foreground"
             />
             <button
-              type="button" // Critical to prevent this button from firing a form submit
+              type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 select-none transition-colors"
               aria-label={showPassword ? "Hide password" : "Show password"}

@@ -8,10 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, FilePlus } from "lucide-react";
 
-// Load CSS styles for the editor layout framework
 import "react-quill-new/dist/quill.snow.css";
 
-// 1. Dynamic Client-Safe Wrapper Engine
 const DynamicQuill = dynamic(
   async () => {
     const { default: RQ } = await import("react-quill-new");
@@ -47,16 +45,6 @@ export function DocumentFormPanel({
   }));
   const [tagsText, setTagsText] = useState((initialData.tags || []).join(", "));
 
-  // Quill's `defaultValue` only seeds the editor on *mount* — after that the
-  // editor owns its own content and ignores prop changes. Since blocks were
-  // keyed by their array index, splicing a new block into the middle of a
-  // page didn't remount anything: React just reused the existing editor DOM
-  // node at that index, which still had the old (shifted) block's content
-  // in it, and the "new" block appeared pre-filled.
-  //
-  // The fix is to key each block by a stable id that travels with the block
-  // rather than its position, so inserting a block always mounts a genuinely
-  // new (empty) editor instead of reusing a neighbor's.
   const blockIdCounter = useRef(0);
   const [blockIds, setBlockIds] = useState<string[][]>(() =>
     (initialData.pages || [[initialData.content || ""]]).map((page) =>
@@ -99,7 +87,6 @@ export function DocumentFormPanel({
     }));
   }
 
-  // --- Dynamic Multi-Page Multi-Block Actions ---
   function handleAddPage() {
     setFormData((prev) => ({
       ...prev,
@@ -116,9 +103,6 @@ export function DocumentFormPanel({
     setBlockIds((prev) => prev.filter((_, idx) => idx !== pageIndex));
   }
 
-  // `afterBlockIndex` omitted (or -1) inserts at the start of the page;
-  // otherwise the new block is inserted right after that block, so the
-  // "+" button under each block controls exactly where the new one lands.
   function handleAddBlock(pageIndex: number, afterBlockIndex: number = -1) {
     const insertAt = afterBlockIndex + 1;
     setFormData((prev) => {
@@ -157,21 +141,16 @@ export function DocumentFormPanel({
   function handleBlockChange(
     pageIndex: number,
     blockIndex: number,
-    content: string, // Plain HTML string (we will ignore this)
-    delta: any, // Fragment changes
-    source: string, // Source tracking
-    editor: any, // The active editor API instance
+    content: string,
+    delta: any,
+    source: string,
+    editor: any,
   ) {
     if (!editor) return;
 
-    // 1. Fetch clean structured formatting parameters as JSON
-    const deltaJson = editor.getContents(); // Returns a pure JSON object mapping insertions
+    const deltaJson = editor.getContents();
     const jsonString = JSON.stringify(deltaJson);
 
-    console.log("deltaJson", deltaJson);
-    console.log("jsonString", jsonString);
-
-    // 2. Map this strict JSON string straight into your component form array state
     setFormData((prev) => {
       const updatedPages = [...(prev.pages || [])];
       updatedPages[pageIndex] = updatedPages[pageIndex].map(
@@ -183,34 +162,17 @@ export function DocumentFormPanel({
 
   const currentPages = formData.pages || [[""]];
 
-  // 2. Toolbar layout settings definition matching shadcn scale properties
   const quillModules = {
     toolbar: [
       ["underline", "strike"],
       [{ color: [] }, { background: [] }],
       [{ align: "" }, { align: "center" }, { align: "right" }],
       [{ header: [false, 1, 2] }],
-      // Native Quill format — toggles the block's writing direction. Quill's
-      // own default handler auto-pairs this with alignment (RTL on -> align
-      // right, RTL off -> align back left), so no custom handler needed.
       [{ direction: "rtl" }],
       ["clean"],
     ],
   };
 
-  // Whitelist of formats the editor is allowed to hold at all. This is the
-  // actual fix for the Arabic-bold-crashing-the-PDF issue: removing "bold"
-  // from the toolbar above only hides the *button* — Quill still happily
-  // applies `bold: true` when a user pastes HTML containing <b>/<strong>
-  // tags, or hits Ctrl+B (the keyboard module binds that shortcut whether
-  // or not a toolbar button exists for it). Either path puts `bold: true`
-  // back into the delta JSON we store, and dynamic-pdf-document.tsx maps
-  // that straight to `pdfStyles.bold`, reproducing the original crash.
-  //
-  // Passing `formats` restricts which formats the editor engine will
-  // recognize/keep at all — for *any* source (toolbar, paste, keyboard,
-  // programmatic API) — so "bold" is stripped the moment it would be
-  // applied, instead of merely being unreachable from the toolbar.
   const quillFormats = [
     "underline",
     "strike",
@@ -226,7 +188,6 @@ export function DocumentFormPanel({
       className="w-full flex flex-col h-full gap-5"
       onSubmit={(e) => e.preventDefault()}
     >
-      {/* Safe Native Style Injection overrides matching your global Tailwind parameters */}
       <style>{`
         /* 1. Base Editor Formatting Wrappers */
         .quill-tailwind-reset .ql-toolbar.ql-snow {
@@ -319,7 +280,6 @@ export function DocumentFormPanel({
         }
       `}</style>
 
-      {/* Document Info */}
       <div>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
           Document Info
@@ -357,7 +317,6 @@ export function DocumentFormPanel({
         </div>
       </div>
 
-      {/* Client Info */}
       <div>
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3">
           Client Info
@@ -416,7 +375,6 @@ export function DocumentFormPanel({
         </div>
       </div>
 
-      {/* Dynamic Structural Pages Container */}
       <div className="flex flex-col gap-4 flex-1">
         <div className="flex items-center justify-between border-b pb-2">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
@@ -459,7 +417,6 @@ export function DocumentFormPanel({
                 )}
               </div>
 
-              {/* Loop Blocks inside this specific Page Card Layout Grid */}
               <div className="flex flex-col gap-3 pl-2 border-l-2 border-dashed">
                 {blocks.map((blockContent, blockIdx) => (
                   <div
@@ -484,7 +441,6 @@ export function DocumentFormPanel({
                         )}
                       </div>
 
-                      {/* Integrated Rich Text Editor Wrapper Component Slot */}
                       <div className="w-full">
                         <style>
                           {`

@@ -25,7 +25,6 @@ const INITIAL_DOCUMENT_DATA: DocumentData = {
   tags: [],
 };
 
-// Shared fixed height for both the form panel and PDF viewer
 const PANEL_HEIGHT = "h-[680px]";
 
 export default function PdfCreatorDashboard() {
@@ -36,14 +35,10 @@ export default function PdfCreatorDashboard() {
   const [documentCompany, setDocumentCompany] =
     useState<CompanySettings | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  // Draft copy edited inside the settings drawer; only committed to
-  // `settings` when Save is pressed. Seeded fresh from `settings` each time
-  // the drawer opens (see effect below).
   const [companyDraft, setCompanyDraft] = useState<CompanySettings | null>(
     null,
   );
   const [settingsSavedAt, setSettingsSavedAt] = useState<number | null>(null);
-  // Cards open in read-only "View" mode; the Edit button flips this off.
   const [readOnly, setReadOnly] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 768px)");
 
@@ -217,7 +212,6 @@ export default function PdfCreatorDashboard() {
         </div>
       ) : (
         <div className={`flex flex-col lg:flex-row gap-5 ${PANEL_HEIGHT}`}>
-          {/* Form panel — dominant, ~62% on large screens */}
           <div className="w-full flex-1 min-h-0 lg:flex-[3] lg:shrink-0 bg-card text-card-foreground border border-border rounded-2xl p-4 sm:p-6 shadow-sm overflow-y-auto flex flex-col">
             <h2 className="text-base font-semibold mb-5">Document Details</h2>
             <DocumentFormPanel
@@ -227,7 +221,6 @@ export default function PdfCreatorDashboard() {
             />
           </div>
 
-          {/* PDF viewer — narrower, ~38%, with its own download action */}
           <div className="w-full flex-1 min-h-0 lg:flex-[2] rounded-2xl overflow-hidden border border-border shadow-sm">
             <PdfPreview
               company={activeCompany}

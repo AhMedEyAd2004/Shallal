@@ -184,7 +184,6 @@ export const SOCIAL_CONFIG: SocialConfigMap = {
     label: "WhatsApp",
     icon: WhatsappIcon,
     className: "text-foreground hover:underline",
-    // Strips out domains like wa.me, ://whatsapp.com, 'tel:', '+', and spaces
     getHref: (v) => {
       const cleanUrl = v.replace(
         /(https?:\/\/)?(www\.)?(wa\.me\/|api\.whatsapp\.com\/send\?phone=)/,
@@ -198,7 +197,6 @@ export const SOCIAL_CONFIG: SocialConfigMap = {
     label: "Facebook",
     icon: FacebookIcon,
     className: "text-foreground hover:underline",
-    // Extracts username from ://facebook.com, ignores tracking queries like ?id=
     getHref: (v) => {
       const match = v.match(
         /(?:https?:\/\/)?(?:www\.)?(?:facebook|fb)\.com\/([^/?#]+)/,
@@ -210,7 +208,6 @@ export const SOCIAL_CONFIG: SocialConfigMap = {
     label: "Instagram",
     icon: InstagramIcon,
     className: "text-foreground hover:underline",
-    // Extracts username from ://instagram.com
     getHref: (v) => {
       const match = v.match(
         /(?:https?:\/\/)?(?:www\.)?instagram\.com\/([^/?#]+)/,
@@ -250,6 +247,85 @@ export interface RawSocialLink {
   url_or_number: string;
 }
 
+/**
+ * Keyword groups checked via substring match, in priority order.
+ * This handles platform strings with prefixes/suffixes like
+ * "hero-btn-whatsapp", "footer_call_button", "phone number", etc.
+ * Order matters: more specific keywords should come before generic ones.
+ */
+const PLATFORM_KEYWORDS: Array<{
+  platform: SocialPlatform;
+  keywords: string[];
+}> = [
+  {
+    platform: "whatsapp",
+    keywords: ["whatsapp", "whats_app", "wa.me", "_wa_", "-wa-"],
+  },
+  { platform: "facebook", keywords: ["facebook", "fb"] },
+  { platform: "instagram", keywords: ["instagram", "insta", "_ig_", "-ig-"] },
+  {
+    platform: "x",
+    keywords: ["twitter", "tweet", "_x_", "-x-", "_x", "x_", "-x", "x-"],
+  },
+  {
+    platform: "phone_number",
+    keywords: ["phone", "call", "tel", "telephone", "mobile", "cell"],
+  },
+  { platform: "other", keywords: ["website", "web", "link", "url", "other"] },
+];
+
+/**
+ * Normalizes an arbitrary platform label (however a button names it)
+ * down to a canonical SocialPlatform key, using substring matching so
+ * prefixed/suffixed variants (e.g. "hero-btn-whatsapp") still resolve.
+ * Falls back to "other" if nothing matches.
+ */
+function normalizePlatform(rawPlatform: string): SocialPlatform {
+  const normalized = rawPlatform
+    .toLowerCase()
+    .trim()
+    .replace(/[\s-]+/g, "_");
+  // Pad with underscores so boundary-sensitive keywords like "_x_" can
+  // match even at the very start/end of the string.
+  const padded = `_${normalized}_`;
+
+  for (const { platform, keywords } of PLATFORM_KEYWORDS) {
+    if (keywords.some((kw) => padded.includes(kw))) {
+      return platform;
+    }
+  }
+  return "other";
+}
+
+/**
+ * Builds a real, clickable href for a given platform + raw value.
+ * getHref() on SOCIAL_CONFIG only extracts the username/number —
+ * this turns that into an actual working link.
+ */
+function buildHref(platform: SocialPlatform, rawValue: string): string {
+  const extracted = SOCIAL_CONFIG[platform].getHref(rawValue);
+
+  switch (platform) {
+    case "whatsapp":
+      return `https://wa.me/${extracted.replace("+", "")}`;
+    case "facebook":
+      return `https://facebook.com/${extracted}`;
+    case "instagram":
+      return `https://instagram.com/${extracted}`;
+    case "x":
+      return `https://x.com/${extracted}`;
+    case "phone_number":
+      return `tel:${extracted}`;
+    case "other":
+    default:
+      // Ensure "other" links are absolute so they don't resolve relative
+      // to the current page.
+      return /^https?:\/\//i.test(extracted)
+        ? extracted
+        : `https://${extracted}`;
+  }
+}
+
 export function SocialLinks({
   socialLinks,
   className,
@@ -261,17 +337,18 @@ export function SocialLinks({
 
   return (
     <div className={cn("flex flex-col flex-wrap gap-2", className)}>
-      {socialLinks.map((link, idx) => {
-        const key = link.platform
-          .toLowerCase()
-          .replace(/\s+/g, "_") as SocialPlatform;
-        const config = SOCIAL_CONFIG[key] || SOCIAL_CONFIG.other;
+      {socialLinks.map((link) => {
+        const platformKey = normalizePlatform(link.platform);
+        const config = SOCIAL_CONFIG[platformKey];
         const Icon = config.icon;
-        const isPhone = key === "phone_number";
+        const isPhone = platformKey === "phone_number";
+        const displayText = config.getHref(link.url_or_number);
+        const href = buildHref(platformKey, link.url_or_number);
+
         return (
           <a
-            key={link.id}
-            href={config.getHref(link.url_or_number)}
+            key={link.id ?? `${link.platform}-${link.url_or_number}`}
+            href={href}
             target={isPhone ? undefined : "_blank"}
             rel={isPhone ? undefined : "noopener noreferrer"}
             className={cn(
@@ -280,7 +357,7 @@ export function SocialLinks({
             )}
           >
             <Icon className="h-4 w-4 shrink-0" />
-            {config.getHref(link.url_or_number)}
+            {displayText}
           </a>
         );
       })}

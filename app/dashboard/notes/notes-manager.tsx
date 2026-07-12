@@ -33,7 +33,6 @@ import {
 import { cn } from "@/lib/utils";
 import { ResponsiveDrawer } from "@/components/custom/responsiveDrawer";
 
-// Native formatting
 function formatDeadline(dateString?: string) {
   if (!dateString) return "No deadline";
   return new Date(dateString).toLocaleDateString(undefined, {
@@ -75,7 +74,6 @@ function priorityGradient(priority: string) {
   }
 }
 
-// Separate component for the form so it can hold DatePicker state
 function NoteForm({
   note,
   onSubmitAction,
@@ -181,7 +179,6 @@ function NoteForm({
           {note ? "Save Changes" : "Create Note"}
         </Button>
       </div>
-      {/* Hidden trigger clicked programmatically to close the drawer after a successful submit */}
       <DrawerClose asChild>
         <button
           ref={closeRef}
@@ -195,7 +192,6 @@ function NoteForm({
   );
 }
 
-// Read-only view of a note's full details (no truncation)
 function NoteView({ note }: { note: any }) {
   return (
     <div className="space-y-5">
@@ -324,8 +320,7 @@ export function NotesManager({ notes }: { notes: any[] }) {
   );
 }
 
-// One card per note — keeps its own pending state + close-refs for its edit drawer,
-// so opening/closing one note's drawers never touches another's.
+
 function NoteCard({
   note,
   handleAction,

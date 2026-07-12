@@ -23,7 +23,6 @@ export default function Login() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [clientErrors, setClientErrors] = useState<Record<string, string>>({});
 
-  // Show server-side feedback as toasts
   useEffect(() => {
     if (message) toast.success(message);
   }, [message]);
@@ -32,7 +31,6 @@ export default function Login() {
     if (state.error) toast.error(state.error);
   }, [state.error]);
 
-  // Client-side validation
   useEffect(() => {
     const errors: Record<string, string> = {};
 

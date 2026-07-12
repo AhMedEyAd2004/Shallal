@@ -11,36 +11,41 @@ const countryOptions = Object.entries(countriesData)
   .map(([code, name]) => ({ value: code.toUpperCase(), label: name as string }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-export function getFlagUrl(code: string) {
-  return `https://flagcdn.com/${code.toLowerCase()}.svg`;
-}
+import { getCountryLabel } from "@/lib/country-utils";
+export { getCountryLabel };
 
-/** Looks up country name from ISO alpha-2 code */
-export function getCountryLabel(code: string) {
-  return countryOptions.find((c) => c.value === code)?.label ?? code;
-}
 
 interface CountrySelectProps {
   name?: string;
   defaultValue?: string;
 }
 
-export function CountrySelect({ name = "country", defaultValue }: CountrySelectProps) {
+export function CountrySelect({
+  name = "country",
+  defaultValue,
+}: CountrySelectProps) {
   const initial = defaultValue
-    ? countryOptions.find((c) => c.value === defaultValue || c.label === defaultValue) ?? null
+    ? (countryOptions.find(
+        (c) => c.value === defaultValue || c.label === defaultValue,
+      ) ?? null)
     : null;
 
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<{ value: string; label: string } | null>(initial);
+  const [selected, setSelected] = useState<{
+    value: string;
+    label: string;
+  } | null>(initial);
   const [search, setSearch] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+      if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -48,7 +53,6 @@ export function CountrySelect({ name = "country", defaultValue }: CountrySelectP
     return () => document.removeEventListener("mousedown", handler);
   }, [open]);
 
-  // Focus search input when opening
   useEffect(() => {
     if (open) {
       setTimeout(() => searchRef.current?.focus(), 0);
@@ -58,12 +62,13 @@ export function CountrySelect({ name = "country", defaultValue }: CountrySelectP
   }, [open]);
 
   const filtered = search.trim()
-    ? countryOptions.filter((c) => c.label.toLowerCase().includes(search.toLowerCase()))
+    ? countryOptions.filter((c) =>
+        c.label.toLowerCase().includes(search.toLowerCase()),
+      )
     : countryOptions;
 
   return (
     <div ref={wrapperRef} className="relative" data-vaul-no-drag>
-      {/* Hidden input carries the ISO code to the server action */}
       <input type="hidden" name={name} value={selected?.value ?? ""} />
 
       <Button
@@ -74,7 +79,7 @@ export function CountrySelect({ name = "country", defaultValue }: CountrySelectP
         onClick={() => setOpen((v) => !v)}
         className={cn(
           "w-full justify-between font-normal",
-          !selected && "text-muted-foreground"
+          !selected && "text-muted-foreground",
         )}
       >
         <div className="flex items-center gap-2 overflow-hidden">
@@ -112,7 +117,9 @@ export function CountrySelect({ name = "country", defaultValue }: CountrySelectP
           {/* List */}
           <div className="max-h-56 overflow-y-auto p-1">
             {filtered.length === 0 && (
-              <p className="py-4 text-center text-sm text-muted-foreground">No country found.</p>
+              <p className="py-4 text-center text-sm text-muted-foreground">
+                No country found.
+              </p>
             )}
             {filtered.map((c) => (
               <button
@@ -128,13 +135,10 @@ export function CountrySelect({ name = "country", defaultValue }: CountrySelectP
                 <Check
                   className={cn(
                     "h-4 w-4 shrink-0",
-                    selected?.value === c.value ? "opacity-100" : "opacity-0"
+                    selected?.value === c.value ? "opacity-100" : "opacity-0",
                   )}
                 />
-                <FlagImage
-                  countryCode={c.value}
-                  countryName={c.label}
-                />
+                <FlagImage countryCode={c.value} countryName={c.label} />
                 <span className="truncate">{c.label}</span>
               </button>
             ))}

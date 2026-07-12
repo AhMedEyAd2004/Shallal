@@ -27,7 +27,6 @@ export function useCompanySettings() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) setSettings(JSON.parse(raw));
     } catch {
-      // ignore malformed storage, fall back to defaults
     } finally {
       setIsLoaded(true);
     }
@@ -37,9 +36,7 @@ export function useCompanySettings() {
     setSettings(next);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // storage may be unavailable (SSR / private mode) - state still updates
-    }
+    } catch {}
   }, []);
 
   return { settings, saveSettings, isLoaded };

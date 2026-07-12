@@ -7,15 +7,16 @@ export default async function ManageDataPage() {
   const supabase = await createClient();
 
   const [
-    { data: projects },
+    { data: projects, count: projectsCount },
     { data: testimonials },
     { data: companies },
     { data: socialLinks },
   ] = await Promise.all([
     supabase
       .from("projects")
-      .select("*, testimonials(*)")
-      .order("created_at", { ascending: false }),
+      .select("*, testimonials(*)", { count: "exact" })
+      .order("created_at", { ascending: false })
+      .range(0, 5),
     supabase
       .from("testimonials")
       .select("*, projects(links)")
@@ -38,6 +39,7 @@ export default async function ManageDataPage() {
 
       <ManageDataUI
         projects={projects || []}
+        projectsCount={projectsCount || 0}
         testimonials={(testimonials || []).map((t) => ({
           ...t,
           links: t.projects?.links || [],

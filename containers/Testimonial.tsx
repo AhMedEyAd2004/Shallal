@@ -1,6 +1,7 @@
 import { CardStackCarousel } from "@/gsap-wrappers/animated-testimonials";
 import Link from "next/link";
 import { LinkIcon, UserRound } from "lucide-react";
+import { ProjectLinks } from "@/components/project-links";
 
 type Testimonial = {
   id: string;
@@ -20,20 +21,8 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
 
       <div className="mt-8 flex flex-col gap-3">
         {testimonial.links && testimonial.links.length > 0 && (
-          <div className="flex gap-2 flex-wrap">
-            <p className=" text-sm font-semibold">Links:</p>
-            <div className="flex gap-2">
-              {testimonial.links.map((link) => (
-                <Link
-                  key={link.url}
-                  href={link.url}
-                  className="text-sm flex underline hover:text-muted-foreground transition-colors"
-                >
-                  <LinkIcon className=" size-4" />
-                  {link.title}
-                </Link>
-              ))}
-            </div>
+          <div className="flex border-t-2 border-border pt-3 gap-2 items-center">
+            <ProjectLinks links={testimonial.links} />
           </div>
         )}
         <div className="flex items-center gap-4">

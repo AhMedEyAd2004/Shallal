@@ -268,7 +268,6 @@ function ImageManager({ initialImages = [] }: { initialImages?: string[] }) {
 }
 
 function LinksManager({ initialLinks = [] }: { initialLinks?: any }) {
-  // Normalize initial links to array [{ title, url }]
   let initialList: { title: string; url: string }[] = [];
   if (Array.isArray(initialLinks)) {
     initialList = initialLinks
@@ -300,7 +299,6 @@ function LinksManager({ initialLinks = [] }: { initialLinks?: any }) {
   const removeLink = (idx: number) =>
     setLinks(links.filter((_, i) => i !== idx));
 
-  // Build the final JSON object for the hidden input
   const validLinks = links.filter((l) => l.title?.trim() && l.url.trim());
 
   return (
@@ -399,25 +397,53 @@ const projectFormFields = (p?: any) => (
   </>
 );
 
-export function ProjectsManager({ projects }: { projects: any[] }) {
+import Link from "next/link";
+import { getPaginatedProjectsAction } from "./actions";
+import { useEffect, useCallback } from "react";
+
+export { TestimonialsList, ImageManager, LinksManager, projectFormFields };
+
+export function ProjectsManager({ projects: initialProjects, totalCount }: { projects: any[], totalCount: number }) {
+  const PAGE_SIZE = 6;
+  const [items, setItems] = useState<any[]>(initialProjects || []);
+  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(totalCount > items.length);
+
   const [isPending, startTransition] = useTransition();
 
-  const PAGE_SIZE = 6;
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  useEffect(() => {
+    const timeout = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const res = await getPaginatedProjectsAction(1, PAGE_SIZE, search);
+        if (res.data) {
+          setItems(res.data);
+          setPage(1);
+          setHasMore((res.count || 0) > res.data.length);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [search]);
 
-  const filteredProjects = projects.filter((p) => {
-    if (!search) return true;
-    const term = search.toLowerCase();
-    const matchTitle = p.title?.toLowerCase().includes(term);
-    const matchTags =
-      Array.isArray(p.tags) &&
-      p.tags.some((tag: string) => tag.toLowerCase().includes(term));
-    return matchTitle || matchTags;
-  });
-
-  const paginatedProjects = filteredProjects.slice(0, visibleCount);
-  const hasMore = visibleCount < filteredProjects.length;
+  const loadMore = async () => {
+    setIsLoading(true);
+    try {
+      const nextPage = page + 1;
+      const res = await getPaginatedProjectsAction(nextPage, PAGE_SIZE, search);
+      if (res.data) {
+        setItems(prev => [...prev, ...res.data!]);
+        setPage(nextPage);
+        setHasMore((res.count || 0) > items.length + res.data.length);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleAction = async (
     actionFn: () => Promise<any>,
@@ -426,12 +452,8 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
     const result = await actionFn();
     if (result?.error) {
       toast.error(result.error);
-    } else if (result?.success) {
+    } else if (result?.success || result === undefined) {
       if (successText) toast.success(successText);
-      // Close vaul drawer by simulating Escape key press
-      document.dispatchEvent(
-        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
-      );
     }
   };
 
@@ -439,166 +461,28 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold font-stack">Projects</h2>
-
         <div className="flex gap-4 w-full sm:w-auto">
           <div className="relative w-full sm:w-72">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by title or tag..."
+              placeholder="Search by title..."
               className="pl-9"
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setVisibleCount(PAGE_SIZE);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
               dir="auto"
             />
           </div>
-
-          <ResponsiveDrawer
-            title="Create New Project"
-            content={
-              <div className="space-y-6 pt-4 pb-8">
-                <form
-                  action={(formData) =>
-                    startTransition(() =>
-                      handleAction(
-                        () => addProjectAction(formData),
-                        "Project successfully created!",
-                      ),
-                    )
-                  }
-                  className="space-y-4"
-                >
-                  {projectFormFields()}
-                  <Button type="submit" disabled={isPending} className="w-full">
-                    Create Project
-                  </Button>
-                </form>
-              </div>
-            }
-          >
+          <Link href="/dashboard/manage-data/projects/new">
             <Button className="shrink-0 gap-2">
               <Plus className="h-4 w-4" /> Add Project
             </Button>
-          </ResponsiveDrawer>
+          </Link>
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedProjects.map((p) => {
-          const mainImage =
-            Array.isArray(p.images) && p.images.length > 0
-              ? p.images[0]
-              : "/logo.png";
-
-          const editFormContent = (
-            <form
-              action={(formData) =>
-                startTransition(() =>
-                  handleAction(
-                    () => updateProjectAction(p.id, formData),
-                    "Project successfully updated!",
-                  ),
-                )
-              }
-              className="pt-4 pb-8 grid grid-cols-1 md:grid-cols-2 gap-8"
-            >
-              {/* Left Column: Media & Testimonials */}
-              <div className="space-y-6">
-                {p.images && p.images.length > 0 && (
-                  <ImageCarousel images={p.images} alt={p.title} />
-                )}
-
-                {/* Display & Add Testimonials */}
-                <div className="space-y-4 border-t pt-6 mt-6">
-                  <h4 className="font-semibold text-lg">
-                    Project Testimonials
-                  </h4>
-
-                  {/* ADD TESTIMONIAL FORM */}
-                  <div className="bg-muted/30 p-4 rounded-xl space-y-3 border border-border">
-                    <p className="text-sm font-medium">Add New Testimonial</p>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Input
-                        name="testi_person_name"
-                        placeholder="Person Name"
-                        className="h-8 text-sm"
-                        dir="auto"
-                      />
-                      <Input
-                        name="testi_person_role"
-                        placeholder="Role (e.g. CEO)"
-                        className="h-8 text-sm"
-                        dir="auto"
-                      />
-                    </div>
-                    <Textarea
-                      name="testi_comment"
-                      placeholder="Testimonial comment..."
-                      rows={2}
-                      className="text-sm min-h-[60px]"
-                      dir="auto"
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Filling this adds a testimonial when you save the project.
-                      Leave empty to skip.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    {(!p.testimonials || p.testimonials.length === 0) && (
-                      <p className="text-sm text-muted-foreground">
-                        No testimonials yet.
-                      </p>
-                    )}
-                    {/* Show only first 2 testimonials, rest hidden behind state */}
-                    <TestimonialsList
-                      testimonials={p.testimonials}
-                      handleAction={handleAction}
-                      startTransition={startTransition}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column: Title & Form Fields */}
-              <div className="space-y-6">
-                <div className="space-y-4 mb-4">
-                  <h3 className="text-3xl font-bold font-stack" dir="auto">{p.title}</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="text-sm text-muted-foreground mb-4">
-                    <span className="font-semibold text-foreground">
-                      Created at:
-                    </span>{" "}
-                    {new Date(p.created_at).toLocaleString()}
-                  </div>
-
-                  {projectFormFields(p)}
-
-                  <div className="flex justify-between items-center pt-6 border-t mt-8">
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      onClick={() =>
-                        startTransition(() =>
-                          handleAction(() => deleteProjectAction(p.id)),
-                        )
-                      }
-                    >
-                      Delete Project
-                    </Button>
-                    <Button type="submit" disabled={isPending} className="px-8">
-                      Save Changes
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          );
-
+        {items.map((p) => {
+          const mainImage = Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : "/logo.png";
           return (
             <div key={p.id} className="h-[450px]">
               <ProjectCard
@@ -614,38 +498,26 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
                 images={p.images}
                 dashboardActions={
                   <div className="flex gap-2">
-                    <Button
-                      size="icon"
-                      variant="secondary"
-                      className="h-8 w-8 rounded-full  opacity-100 bg-white shadow-md hover:bg-gray-100 text-black pointer-events-none"
-                      title="View Project"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <ResponsiveDrawer
-                        title={`Edit Project: ${p.title}`}
-                        content={editFormContent}
-                      >
-                        <Button
-                          size="icon"
-                          variant="secondary"
-                          className="h-8 w-8 rounded-full opacity-100 bg-white shadow-md hover:bg-gray-100 text-black"
-                          title="Edit Project"
-                        >
-                          <Pen className="h-4 w-4" />
-                        </Button>
-                      </ResponsiveDrawer>
-                    </div>
+                    <Link href={`/dashboard/manage-data/projects/${p.id}/view`} onClick={(e) => e.stopPropagation()}>
+                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full opacity-100 bg-white shadow-md hover:bg-gray-100 text-black" title="View Project">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <Link href={`/dashboard/manage-data/projects/${p.id}`} onClick={(e) => e.stopPropagation()}>
+                      <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full opacity-100 bg-white shadow-md hover:bg-gray-100 text-black" title="Edit Project">
+                        <Pen className="h-4 w-4" />
+                      </Button>
+                    </Link>
                     <Button
                       size="icon"
                       variant="destructive"
                       className="h-8 w-8 rounded-full opacity-100 shadow-md"
                       onClick={(e) => {
                         e.stopPropagation();
-                        startTransition(() =>
-                          handleAction(() => deleteProjectAction(p.id)),
-                        );
+                        startTransition(() => {
+                           handleAction(() => deleteProjectAction(p.id), "Project deleted");
+                           setItems(prev => prev.filter(item => item.id !== p.id));
+                        });
                       }}
                       title="Delete Project"
                     >
@@ -659,28 +531,17 @@ export function ProjectsManager({ projects }: { projects: any[] }) {
         })}
       </div>
 
-      {(hasMore || visibleCount > PAGE_SIZE) && (
+      {hasMore && (
         <div className="flex justify-center gap-3 pt-2">
-          {hasMore && (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
-              className="rounded-full px-6"
-            >
-              View More
-            </Button>
-          )}
-          {visibleCount > PAGE_SIZE && (
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setVisibleCount(PAGE_SIZE)}
-              className="rounded-full px-6"
-            >
-              View Less
-            </Button>
-          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={loadMore}
+            disabled={isLoading}
+            className="rounded-full px-6"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </Button>
         </div>
       )}
     </div>

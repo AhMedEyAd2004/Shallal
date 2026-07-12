@@ -38,9 +38,6 @@ export default async function proxy(request: NextRequest) {
   // Route definitions
   const pathname = request.nextUrl.pathname;
 
-  // Public pages rules
-  const isSetPasswordPage = pathname === "/set-password";
-
   // Dashboard routes require authentication, except for the set-password page
   const isProtected = pathname.startsWith("/dashboard");
 
