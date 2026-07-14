@@ -11,6 +11,7 @@ export default async function ManageDataPage() {
     { data: testimonials },
     { data: companies },
     { data: socialLinks },
+    { data: allProjectsMinimal, error: projectsError },
   ] = await Promise.all([
     supabase
       .from("projects")
@@ -23,10 +24,15 @@ export default async function ManageDataPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("service_provided")
-      .select("*")
+      .select("*, projects(*)")
       .order("id", { ascending: true }),
     supabase.from("social_links").select("*").order("id", { ascending: true }),
+    supabase.from("projects").select("id, title, images, country").order("created_at", { ascending: false }),
   ]);
+
+  if (projectsError) {
+    console.error("Error fetching allProjectsMinimal:", projectsError);
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8">
@@ -46,6 +52,7 @@ export default async function ManageDataPage() {
         }))}
         companies={companies || []}
         socialLinks={socialLinks || []}
+        allProjectsMinimal={allProjectsMinimal || []}
       />
     </div>
   );

@@ -9,6 +9,7 @@ export function ManageDataUI({
   testimonials,
   companies,
   socialLinks,
+  allProjectsMinimal,
 }: any) {
   return (
     <div className="space-y-12 pb-12">
@@ -17,7 +18,7 @@ export function ManageDataUI({
         <TestimonialsManager testimonials={testimonials} />
       </div>
       <div className="border-t border-border pt-12">
-        <CompaniesManager companies={companies} />
+        <CompaniesManager companies={companies} allProjectsMinimal={allProjectsMinimal} />
       </div>
       <div className="border-t border-border pt-12">
         <SocialsManager socialLinks={socialLinks} />

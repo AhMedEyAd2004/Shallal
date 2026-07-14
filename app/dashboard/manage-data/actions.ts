@@ -204,9 +204,7 @@ export async function deleteTestimonialAction(id: string) {
 export async function addCompanyAction(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.from("service_provided").insert({
-    title: formData.get("title"),
-    company_image_url: formData.get("companyImage") || "/logo.png",
-    country_image_url: formData.get("countryImage") || "/egypt.png",
+    project_id: formData.get("project_id"),
     order_index: 0,
   });
 

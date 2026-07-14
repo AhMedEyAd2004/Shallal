@@ -25,8 +25,8 @@ const PATH_COLORS = [
 export interface CompanyItem {
   companyName: string;
   companyImage: string;
-  countryName: string;
-  countryImage: string;
+  countryName?: string;
+  countryCode: string;
 }
 
 interface PlatformsServedProps {
@@ -259,7 +259,7 @@ export default function PlatformsServed({
               <div
                 key={key}
                 className="relative shrink-0 size-12 lg:size-16 "
-                title={`${company.companyName} — ${company.countryName}`}
+                title={`${company.companyName}`}
               >
                 <Image
                   src={company.companyImage}
@@ -268,11 +268,8 @@ export default function PlatformsServed({
                   className="object-contain rounded-lg"
                 />
                 <FlagImage
-                  countryCode={(() => {
-                    const parts = company.countryImage.split('/');
-                    return parts[parts.length - 1].split('.')[0].toUpperCase();
-                  })()}
-                  countryName={company.countryName}
+                  countryCode={company.countryCode}
+                  countryName={company.countryName || company.countryCode}
                   className="absolute bottom-0 -right-1"
                 />
               </div>

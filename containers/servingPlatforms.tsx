@@ -7,7 +7,7 @@ export default function ServicedPlatforms({ companies = [] }: { companies?: Comp
     companyName: "Acme Corp",
     companyImage: "/logo.png",
     countryName: "Egypt",
-    countryImage: "/egypt.png",
+    countryCode: "EG",
   }));
 
   return (

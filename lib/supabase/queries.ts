@@ -86,7 +86,7 @@ export const getServiceProvided = unstable_cache(
   async () => {
     const { data: services, error } = await supabase
       .from("service_provided")
-      .select("*");
+      .select("*, projects(*)");
 
     if (error) {
       console.error("Error fetching service_provided:", error);

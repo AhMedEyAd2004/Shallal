@@ -105,12 +105,17 @@ export default async function Home() {
     links: normalizeLinksInput(t.projects?.links),
   }));
 
-  const companies = dbServices.map((s: any) => ({
-    companyName: s.title,
-    companyImage: s.company_image_url,
-    countryName: "",
-    countryImage: s.country_image_url,
-  }));
+  // Maps the service_provided items that are joined with projects
+  const companies = dbServices.map((s: any) => {
+    const project = s.projects || {};
+    const imagesArray = Array.isArray(project.images) ? project.images : [];
+    const mainImage = imagesArray.length > 0 ? imagesArray[0] : "/logo.png";
+    return {
+      companyName: project.company || project.title || "Unknown",
+      companyImage: mainImage,
+      countryCode: project.country || "EG",
+    };
+  });
 
   return (
     <main className="overflow-x-hidden">
