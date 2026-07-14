@@ -33,7 +33,6 @@ import {
 import { cn } from "@/lib/utils";
 import { ResponsiveDrawer } from "@/components/custom/responsiveDrawer";
 
-const REMINDER_STORAGE_KEY = "shallal-deadline-reminders-shown";
 
 function formatDeadline(dateString?: string) {
   if (!dateString) return "No deadline";
@@ -76,71 +75,6 @@ function priorityGradient(priority: string) {
   }
 }
 
-function priorityToastClasses(priority: string) {
-  switch (priority) {
-    case "high":
-      return "!bg-red-50 !border-red-300 !text-red-900 dark:!bg-red-950/90 dark:!border-red-800 dark:!text-red-200";
-    case "mid":
-      return "!bg-yellow-50 !border-yellow-300 !text-yellow-900 dark:!bg-yellow-950/90 dark:!border-yellow-800 dark:!text-yellow-200";
-    case "low":
-    default:
-      return "!bg-emerald-50 !border-emerald-300 !text-emerald-900 dark:!bg-emerald-950/90 dark:!border-emerald-800 dark:!text-emerald-200";
-  }
-}
-
-/**
- * Fires a themed toast for any note that's past the halfway point
- * between its creation and its deadline. Requires `created_at` and
- * `deadline` on the note. Only shows a given note's reminder once per
- * browser session so it doesn't nag on every remount/navigation.
- */
-function showDeadlineReminders(notes: any[]) {
-  if (typeof window === "undefined") return;
-
-  let alreadyShown: string[] = [];
-  try {
-    alreadyShown = JSON.parse(
-      sessionStorage.getItem(REMINDER_STORAGE_KEY) || "[]",
-    );
-  } catch {
-    alreadyShown = [];
-  }
-
-  const now = Date.now();
-  const newlyShown: string[] = [];
-
-  notes.forEach((note) => {
-    if (!note.deadline || !note.created_at) return;
-    if (alreadyShown.includes(note.id)) return;
-
-    const created = new Date(note.created_at).getTime();
-    const deadline = new Date(note.deadline).getTime();
-    if (Number.isNaN(created) || Number.isNaN(deadline)) return;
-    if (deadline <= now) return; // expired notes get swept server-side
-
-    const midpoint = created + (deadline - created) / 2;
-    if (now < midpoint) return;
-
-    newlyShown.push(note.id);
-
-    toast(note.title, {
-      description: `Deadline coming up — ${formatDeadline(note.deadline)}`,
-      icon: <AlertCircle className="h-4 w-4" />,
-      className: cn("border font-medium", priorityToastClasses(note.priority)),
-    });
-  });
-
-  if (newlyShown.length) {
-    try {
-      sessionStorage.setItem(
-        REMINDER_STORAGE_KEY,
-        JSON.stringify([...alreadyShown, ...newlyShown]),
-      );
-    } catch {
-      // sessionStorage unavailable (private mode, etc.) — safe to ignore
-    }
-  }
-}
 
 function NoteForm({
   note,
@@ -300,10 +234,6 @@ export function NotesManager({ notes }: { notes: any[] }) {
   const [isPending, setIsPending] = useState(false);
   const createCloseRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    showDeadlineReminders(notes);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const filteredNotes = notes.filter((n) => {
     if (!search) return true;

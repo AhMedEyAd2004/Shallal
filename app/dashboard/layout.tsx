@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/static/theme-toggle";
 import { createClient } from "@/lib/server";
 import { UserProfileDropdown } from "@/components/custom/UserProfileDropdown";
 import { MobileMenu } from "@/components/custom/MobileMenu";
+import { NotesReminder } from "./NotesReminder";
 
 export default async function DashboardLayout({
   children,
@@ -18,6 +19,8 @@ export default async function DashboardLayout({
 
   const email = user?.email || "admin";
   const createdAt = user?.created_at;
+
+  const { data: notes } = await supabase.from("notes").select("*");
 
   return (
     <div className="min-h-screen bg-muted/40">
@@ -84,6 +87,7 @@ export default async function DashboardLayout({
         </div>
       </header>
       <main className="flex-1 p-4 md:p-8">{children}</main>
+      <NotesReminder notes={notes || []} />
     </div>
   );
 }

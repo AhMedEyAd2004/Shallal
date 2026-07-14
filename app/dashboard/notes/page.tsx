@@ -18,10 +18,6 @@ export default async function NotesPage() {
     redirect("/login");
   }
 
-  // Sweep expired notes before we read the list, so the user never sees
-  // a note whose deadline has already passed.
-  await deleteExpiredNotesAction();
-
   const { data: notes, error } = await supabase
     .from("notes")
     .select("*")
